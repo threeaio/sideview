@@ -16,6 +16,7 @@
     "check:english": "npm run build:renderer && node scripts/check-english.mjs",
     "check:labels": "npm run build:renderer && node scripts/check-labels.mjs",
     "check:scrim": "npm run build:renderer && node scripts/check-scrim.mjs",
+    "check:open": "npm run build:renderer && node scripts/check-open.mjs",
     "check:npx": "node scripts/check-npx.mjs"
   },
   "devDependencies": {

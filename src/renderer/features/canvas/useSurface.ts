@@ -62,12 +62,13 @@ export function useSurface(
     };
   }, [host, glHost, overlay]);
 
-  // Wechsel zu einem anderen Canvas: Fläche ausblenden, bis das neue steht. Sonst stünden kurz die neuen
-  // Beschriftungen über den alten Bildern.
+  // Ein Canvas erscheint (aus der Startansicht, beim Start der App oder als Wechsel): Fläche ausblenden, bis die
+  // Kamera steht. Sonst stünden kurz die neuen Beschriftungen über den alten Bildern, und beim ersten Canvas blitzte
+  // die erste Seite riesig auf, mit der Kamera auf Zoom 1 (23.11., sein Befund im Film; Prüfung check:open).
   const shownName = useRef<string | null>(null);
   const name = state?.name ?? null;
   useLayoutEffect(() => {
-    if (shownName.current && name && name !== shownName.current) host.current?.setAttribute("data-switching", "");
+    if (name && name !== shownName.current) host.current?.setAttribute("data-switching", "");
     shownName.current = name;
   }, [name, host]);
 
