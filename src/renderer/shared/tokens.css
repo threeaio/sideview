@@ -1,0 +1,131 @@
+/* Gestaltung, 5.11.2026.
+   Ebene 1: Primitive mit Präfix --ref-, nur hier benutzt. Ebene 2: Rollen, nur sie stehen in Komponenten.
+   Kein reines Weiß: die Karte ist fast weiß. */
+
+@font-face {
+  font-family: "Geist";
+  src: url("./fonts/GeistVF.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+:root {
+  --ref-papier: #fdfdfe;
+  --ref-nebel: #f5f5f7;
+  --ref-dunst: #fafafb;
+  --ref-kies: #e0e0e7;
+  --ref-haar: #f0f0f3;
+  --ref-kohle: #1c1c20;
+  --ref-schiefer: #6b6b76;
+  --ref-stein: #9a9aa5;
+  --ref-graphit: #353535;
+  --ref-graphit-tief: #26262a;
+  --ref-schwarz-4: rgba(28, 28, 32, 0.045);
+  --ref-schwarz-7: rgba(28, 28, 32, 0.07);
+  --ref-hell-12: rgba(245, 245, 247, 0.12);
+  --ref-hell-20: rgba(245, 245, 247, 0.2);
+  --ref-moos: #23704f;
+  --ref-moos-hell: #7fd6ab;
+
+  /* Flächen und Schrift, immer als Paar */
+  --background: var(--ref-nebel);
+  --foreground: var(--ref-kohle);
+  --muted-foreground: var(--ref-schiefer);
+  --faint-foreground: var(--ref-stein);
+  --card: var(--ref-papier);
+  --card-foreground: var(--ref-kohle);
+  --fill: var(--ref-schwarz-4);
+  --fill-hover: var(--ref-schwarz-7);
+  --line: var(--ref-kies);
+  --hair: var(--ref-haar);
+  /* Die Handlung: der eine gewichtige Knopf je Zusammenhang */
+  --action: var(--ref-graphit);
+  --action-hover: var(--ref-graphit-tief);
+  --action-foreground: var(--ref-papier);
+  --image-edge: rgba(28, 28, 32, 0.07);
+  /* Gruppenfläche hinter ihren Bildern, eine Tonstufe vom Grund */
+  --group-fill: var(--ref-schwarz-4);
+  --group-fill-target: rgba(28, 28, 32, 0.08);
+  --group-foreground: var(--ref-kohle);
+  /* Auswahl beim Anordnen: Ring und Auswahlrechteck */
+  /* Auswahl: angehoben statt umrandet */
+  --selection-halo: var(--ref-papier);
+  --selection-edge: rgba(28, 28, 32, 0.1);
+  --selection-fill: rgba(28, 28, 32, 0.05);
+  --slot-shade: rgba(28, 28, 32, 0.1);
+  /* Markierter Text in Feldern: weich getönt statt Systemschwarz */
+  --selection-text: rgba(28, 28, 32, 0.16);
+
+  /* Erledigt (Haken an Anmerkungen): Schrift auf der Karte, 6:1 auf --card. */
+  --done-foreground: var(--ref-moos);
+
+  /* Grund unter den Screenshots. Hell; dunkel über data-stage="dark" (Menü Ansicht). */
+  --stage: var(--ref-nebel);
+
+  /* Rechtecke auf Screenshots: helle Linie, dunkle Kante, Abdunkeln außerhalb */
+  --mark-line: var(--ref-papier);
+  --mark-edge: rgba(28, 28, 32, 0.28);
+  --mark-scrim: rgba(28, 28, 32, 0.42);
+
+  /* Abstände und Radien: eine Grundzahl, innen = außen − Polster, nie unter 6 px, nie 0 */
+  --space-1: 8px;
+  --space-2: 12px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-shell: 20px;
+  --space-child: 10px;
+  --radius-floor: 6px;
+  --radius-shell: 36px;
+  --radius-child: max(calc(var(--radius-shell) - var(--space-shell)), var(--radius-floor));
+  --radius-grandchild: max(calc(var(--radius-child) - var(--space-child)), var(--radius-floor));
+  --radius-pill: 999px;
+  /* Höhe der Kopfzeile. Sie schwebt über dem Canvas; Fahrten und Beschriftungen halten darunter Abstand. */
+  --bar-height: 88px;
+  /* Unten verdeckt die Werkzeugleiste: Abstand 24, Höhe 44, Luft 8. Fahrten, Notizfeld und Sprachleiste halten
+     darüber Abstand (22.11.: Bedienelemente überlappen; Leiste bleibt unten, die anderen weichen aus). */
+  --toolbar-clear: 76px;
+
+  /* Tiefe durch weiche Doppelschatten, nicht durch Rahmen */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.05);
+  --shadow-2: 0 2px 4px rgba(0, 0, 0, 0.05), 0 12px 32px rgba(0, 0, 0, 0.09);
+  --shadow-3: 0 4px 12px rgba(0, 0, 0, 0.06), 0 28px 72px rgba(0, 0, 0, 0.16);
+  --shadow-button: 0 1px 2px rgba(0, 0, 0, 0.12);
+
+  /* Schrift: Skala 28 / 20 / 16 / 14, nie kleiner */
+  --font-ui: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --text-page: 28px;
+  --text-title: 20px;
+  --text-body: 16px;
+  --text-small: 14px;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Dunkler Grund unter den Screenshots, nur dort. */
+[data-stage="dark"] {
+  --stage: var(--ref-kohle);
+  --image-edge: rgba(245, 245, 247, 0.1);
+  --group-fill: rgba(245, 245, 247, 0.06);
+  --group-fill-target: rgba(245, 245, 247, 0.1);
+  --group-foreground: var(--ref-nebel);
+  --selection-halo: rgba(245, 245, 247, 0.22);
+  --selection-edge: rgba(245, 245, 247, 0.12);
+  --selection-fill: rgba(245, 245, 247, 0.07);
+  --slot-shade: rgba(0, 0, 0, 0.35);
+}
+
+/* Invers: dunkle Karte mit heller Schrift. Nur als einzelne schwebende Karte, etwa „Claude fragt“. */
+[data-tone="inverse"] {
+  --card: var(--ref-graphit-tief);
+  --card-foreground: var(--ref-nebel);
+  --foreground: var(--ref-nebel);
+  --muted-foreground: rgba(245, 245, 247, 0.62);
+  --faint-foreground: rgba(245, 245, 247, 0.42);
+  --fill: var(--ref-hell-12);
+  --fill-hover: var(--ref-hell-20);
+  --action: var(--ref-nebel);
+  --action-hover: var(--ref-papier);
+  --action-foreground: var(--ref-kohle);
+  --done-foreground: var(--ref-moos-hell);
+  color: var(--foreground);
+}

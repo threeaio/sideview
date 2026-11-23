@@ -1,0 +1,1312 @@
+/* clip statt hidden: Ein Element mit overflow: hidden lässt sich trotzdem scrollen, etwa wenn das Notizfeld am Rand
+   den Fokus bekommt. Danach stimmte jede Lage um diesen Versatz nicht (23.11., Nummer auf der Bildmarke). */
+.surface {
+  position: relative;
+  height: 100%;
+  overflow: clip;
+  background: var(--stage);
+  contain: strict;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.surface__underlay,
+.surface__gl,
+.surface__overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.surface__underlay {
+  overflow: clip;
+  pointer-events: none;
+  contain: layout;
+}
+
+/* Gruppe: getönte Fläche hinter ihren Bildern, Ecken wie die Bilder, Name links darüber.
+   Der Name bleibt auch in der Übersicht stehen, solange die Gruppe nicht winzig ist. */
+.surface-group,
+.surface-group__label {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.surface-group {
+  background: var(--group-fill);
+}
+
+.surface-group__label {
+  height: 0;
+}
+
+.surface-group__name {
+  position: absolute;
+  left: 0;
+  bottom: var(--space-1);
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--group-foreground);
+  font-size: var(--text-body);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.surface-group__label[data-size="s"] {
+  display: none;
+}
+
+.surface__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.surface__overlay {
+  overflow: clip;
+  pointer-events: none;
+  contain: layout;
+}
+
+.surface__overlay [data-surface-ui] {
+  pointer-events: auto;
+}
+
+.surface .home {
+  position: absolute;
+  inset: 0;
+}
+
+/* Gesetzt in Weltkoordinaten: links oben im Ursprung, Lage über transform. */
+.mark,
+.mark-handles,
+.surface-frame,
+.surface-missing,
+.surface-title,
+.mark-label,
+.note-editor {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* Rahmen um jedes Bild: weicher Schatten nach außen, feine Innenkante, Ecken wie das Bild im Shader. */
+.surface-frame {
+  box-shadow:
+    var(--shadow-2),
+    inset 0 0 0 1px var(--image-edge);
+}
+
+/* Marke je Bild (5.11.): Pille oben links auf dem Bild, Name und Zahl der Anmerkungen. Kein Platz über dem
+   Bild, deshalb auch kein leerer Streifen in der Gruppe, wenn man rauszoomt. Anker ohne Höhe, Breite wie das Bild. */
+.surface-title {
+  height: 0;
+}
+
+.surface-title__pill {
+  position: absolute;
+  top: var(--space-1);
+  left: var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100% - 2 * var(--space-1));
+  height: 26px;
+  padding: 0 3px 0 10px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  box-shadow: var(--shadow-1);
+  backdrop-filter: blur(8px);
+  font-size: var(--text-small);
+  line-height: 20px;
+  /* Die Marke liegt auf dem Bild: Klicks gehen durch zum Bild, nur die Zahl fängt sie. */
+  pointer-events: none;
+}
+
+.surface-title__pill:not(:has(.surface-title__count)) {
+  padding-right: 10px;
+}
+
+.surface-title__text {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--card-foreground);
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.surface-title__count {
+  flex: none;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--fill);
+  color: var(--card-foreground);
+  font: 600 var(--text-small) / 20px var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background-color 120ms var(--ease-out);
+}
+
+/* Fassungen: kleines Stapelzeichen mit der Zahl, ruhig neben dem Namen. */
+.surface-title__versions {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--muted-foreground);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.surface-title__pill:has(.surface-title__versions):not(:has(.surface-title__count)) {
+  padding-right: 10px;
+}
+
+/* Stapel früherer Fassungen hinter dem Bild: Blätter wie Papier, nach rechts oben versetzt. */
+.version-stack {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.version-stack__sheet {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--card);
+  box-shadow:
+    var(--shadow-2),
+    inset 0 0 0 1px var(--image-edge);
+  translate: calc(var(--k) * 12px) calc(var(--k) * -12px);
+  z-index: calc(3 - var(--k));
+}
+
+.surface-title__count[data-done] {
+  display: grid;
+  place-items: center;
+  color: var(--done-foreground);
+}
+
+.surface-title__count:hover {
+  background: var(--fill-hover);
+}
+
+.surface-title__count:active {
+  scale: 0.96;
+}
+
+/* Klein: nur die Zahl, gekürzte Namen helfen nicht; ohne Anmerkungen gar nichts. Winzig: nichts. */
+.surface-title[data-size="m"] .surface-title__text {
+  display: none;
+}
+.surface-title[data-size="m"] .surface-title__pill {
+  padding: 0 3px;
+}
+.surface-title[data-size="m"] .surface-title__pill:not(:has(.surface-title__count)),
+.surface-title[data-size="s"] {
+  display: none;
+}
+
+.surface-missing {
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-child);
+  background: var(--fill);
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+}
+
+/* Rechteck „Spotlight“ (gewählt 5.11.): weich gerundet, helle Linie mit Schatten. Beim Aufziehen und
+   in der Auswahl wird alles außerhalb abgedunkelt; das Bild im Rechteck bleibt unberührt. */
+.mark {
+  border: 2px solid var(--mark-line);
+  border-radius: 12px;
+  corner-shape: squircle;
+  box-shadow:
+    0 0 0 1px var(--mark-edge),
+    0 8px 28px rgba(0, 0, 0, 0.22);
+}
+
+.mark[data-selected],
+.mark--draft {
+  box-shadow:
+    0 0 0 1px var(--mark-edge),
+    0 0 0 var(--scrim, 100vmax) var(--mark-scrim);
+}
+
+/* Griffe am ausgewählten Rahmen, unsichtbar (5.11.: sehen muss man nur die Zone zum Verschieben).
+   Kanten wirken auf ganzer Länge, ohne die Ecken; Ecken sind eigene Zonen, mittig auf der Rundung
+   (12 px Radius: 3,5 px innen auf der Diagonale). Nur der Zeiger zeigt die Richtung. Verschieben: die Nummer. */
+.mark-handles {
+  pointer-events: none;
+}
+
+.mark-edge,
+.mark-corner {
+  position: absolute;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.mark-edge[data-handle="n"],
+.mark-edge[data-handle="s"] {
+  left: 16px;
+  right: 16px;
+  height: 12px;
+  cursor: ns-resize;
+}
+.mark-edge[data-handle="n"] { top: -6px; }
+.mark-edge[data-handle="s"] { bottom: -6px; }
+
+.mark-edge[data-handle="e"],
+.mark-edge[data-handle="w"] {
+  top: 16px;
+  bottom: 16px;
+  width: 12px;
+  cursor: ew-resize;
+}
+.mark-edge[data-handle="e"] { right: -6px; }
+.mark-edge[data-handle="w"] { left: -6px; }
+
+.mark-corner {
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+}
+.mark-corner[data-handle="ne"] { top: 3.5px; left: calc(100% - 3.5px); cursor: nesw-resize; }
+.mark-corner[data-handle="se"] { top: calc(100% - 3.5px); left: calc(100% - 3.5px); cursor: nwse-resize; }
+.mark-corner[data-handle="sw"] { top: calc(100% - 3.5px); left: 3.5px; cursor: nesw-resize; }
+
+/* Ein Punkt hat keinen Rahmen, nur seine Nummer. Erledigte zeigen den Rahmen erst, wenn man sie wählt, gestrichelt. */
+.mark[data-point],
+.mark[data-done]:not([data-selected]) {
+  display: none;
+}
+.mark[data-done][data-selected] {
+  border-style: dashed;
+}
+
+/* Die Nummer des ausgewählten Rahmens ist sein Griff. */
+.mark-label__number[data-movable] {
+  cursor: grab;
+  touch-action: none;
+}
+.mark-label__number[data-movable]:active {
+  cursor: grabbing;
+}
+
+/* Beschriftung: Nummer als Nadel auf der linken oberen Ecke, Notiz als Karte darüber, nie im markierten Bereich.
+   `translate` kommt zur Lage aus overlay.ts dazu: Die Unterkante der Nadel sitzt 14 px unter der Linie. */
+.mark-label {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-1);
+  width: max-content;
+  max-width: 360px;
+  translate: -14px 20px; /* auch in overlay.ts (LABEL_SHIFT) */
+  font-size: var(--text-body);
+  line-height: 1.45;
+  cursor: default;
+  /* Nur Nadel, Notiz und Knopf fangen Klicks; die leere Fläche dazwischen lässt sie zu Rahmen und Griffen durch. */
+  pointer-events: none;
+}
+
+.mark-label > * {
+  pointer-events: auto;
+}
+
+.mark-label__number {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow:
+    0 0 0 2px var(--mark-line),
+    var(--shadow-2);
+  font-size: var(--text-small);
+  font-weight: 600;
+  line-height: 28px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Notizkarte: frei neben der Nummer, Lage aus overlay.ts (noteOffset), immer ganz im Sichtfenster. Verborgen per
+   visibility, nicht display, damit overlay.ts sie vorher messen kann. */
+.mark-label__note {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  width: max-content;
+  max-width: 300px;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-child);
+  corner-shape: squircle;
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-3);
+  visibility: hidden;
+}
+
+/* Beim Zeigen gekürzt: Notiz drei Zeilen, Antwort zwei. Gekürzt wird der Text, nicht die Karte, sonst schaut die
+   nächste Zeile im Innenabstand halb hervor. */
+.mark-label:not([data-selected]) .mark-label__text,
+.mark-label:not([data-selected]) .mark-label__reply {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+.mark-label:not([data-selected]) .mark-label__reply {
+  -webkit-line-clamp: 2;
+}
+
+/* Gewählt: die ganze Notiz, darunter die Knöpfe, links bündig mit dem Text (23.11.: vorher standen Knöpfe und
+   Notiz getrennt neben der Nummer, „unruhig“). Die Karte liegt über den Nummern daneben. */
+.mark-label[data-selected] {
+  z-index: 2;
+}
+.mark-label[data-selected] .mark-label__note {
+  padding-bottom: var(--space-1);
+  visibility: visible;
+}
+.mark-label__actions {
+  display: flex;
+  gap: 2px;
+  margin: 2px 0 0 calc(-1 * var(--space-2));
+}
+.mark-label__note > .mark-label__actions:first-child {
+  margin-top: 0;
+}
+
+/* Erledigt: Haken vor der Nummer, Nummer leiser. */
+.mark-label[data-done] .mark-label__number {
+  color: var(--muted-foreground);
+}
+.mark-label__check {
+  flex: none;
+  color: var(--done-foreground);
+}
+
+/* Neuer Punkt, noch ohne Notiz: dunkle Nadel, damit man sieht, wo er sitzt. */
+.mark-label[data-draft] .mark-label__number {
+  background: var(--action);
+  color: var(--action-foreground);
+}
+
+/* Antwort von Claude unter der Notiz. */
+.mark-label__text,
+.mark-label__reply {
+  display: block;
+}
+.mark-label__text + .mark-label__reply {
+  margin-top: 4px;
+}
+.mark-label__reply {
+  color: var(--muted-foreground);
+}
+.mark-label__who {
+  color: var(--done-foreground);
+  font-weight: 600;
+}
+
+/* Knöpfe in der Karte: leise, ohne eigene Fläche, Fläche erst beim Überfahren. */
+.mark-label__action.button {
+  height: 28px;
+  padding: 0 var(--space-2);
+  background: transparent;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.mark-label__action.button:hover:not(:disabled) {
+  background: var(--fill-hover);
+  color: var(--foreground);
+}
+
+/* Notiz nur bei der gewählten Anmerkung oder beim Zeigen auf die Nummer (Stresstest 5.11.: sonst überdecken sich die
+   Notizen). */
+.mark-label:not([data-selected]):hover {
+  z-index: 3;
+}
+.mark-label:not([data-selected]):hover .mark-label__note {
+  visibility: visible;
+}
+
+/* Winziges Rechteck ohne Nummer. Ist das ganze Bild klein, weichen Rahmen und Nummern der Zahl an seiner Marke.
+   Die Auswahl zeigt immer alles. */
+.mark-label[data-size="s"]:not([data-selected]),
+.mark[data-far]:not([data-selected]),
+.mark-label[data-far]:not([data-selected]) {
+  display: none;
+}
+
+/* Notizfeld: eine Karte. Feld innen mit Radius außen − Polster. */
+.note-editor {
+  display: grid;
+  gap: var(--space-2);
+  width: 380px;
+  padding: var(--space-child);
+  border-radius: var(--radius-shell);
+  corner-shape: squircle;
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-3);
+  cursor: default;
+}
+
+.note-editor__text {
+  width: 100%;
+  min-height: 76px;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: max(calc(var(--radius-shell) - var(--space-child)), var(--radius-floor));
+  corner-shape: squircle;
+  background: var(--fill);
+  color: var(--card-foreground);
+  font: inherit;
+  resize: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.note-editor__text::placeholder {
+  color: var(--faint-foreground);
+}
+
+.note-editor__text:focus {
+  outline: none;
+}
+
+.note-editor__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  padding: 0 4px 4px;
+}
+
+/* Hinweis beim Ziehen von Bildern aus dem Finder: kleine Pille am Zeiger. */
+.drop-hint {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  pointer-events: none;
+  transform: translate(16px, 16px);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  corner-shape: round;
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-2);
+  font-size: var(--text-small);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Name des Canvas in der Kopfzeile; darunter klappt das Inhaltsverzeichnis auf, wie ein Menü. */
+.contents {
+  position: relative;
+  min-width: 0;
+  justify-self: start;
+  /* Der Name bleibt bündig mit dem Rand der Leiste, die Hover-Fläche steht links über. */
+  margin-left: calc(-1 * var(--space-2));
+  -webkit-app-region: no-drag;
+}
+
+.contents__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: 100%;
+  height: 36px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-pill);
+  corner-shape: round;
+  background: transparent;
+  color: var(--foreground);
+  font: 600 var(--text-body) / 1.5 var(--font-ui);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease-out);
+}
+
+.contents__title:hover,
+.contents__title[aria-expanded="true"] {
+  background: var(--fill);
+}
+
+.contents__title:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+.contents__chevron {
+  flex: none;
+  color: var(--muted-foreground);
+  transition: transform 160ms var(--ease-out);
+}
+
+.contents__title[aria-expanded="true"] .contents__chevron {
+  transform: rotate(180deg);
+}
+
+.contents__menu {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  width: 320px;
+  max-height: calc(100vh - 88px - var(--space-5));
+  overflow: auto;
+  padding: var(--space-child);
+  border-radius: var(--radius-shell);
+  corner-shape: squircle;
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-3);
+  transform-origin: top left;
+  transition:
+    opacity 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.contents__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contents__entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  /* Kind der Karte: Radius der Karte minus ihr Polster */
+  border-radius: max(calc(var(--radius-shell) - var(--space-child)), var(--radius-floor));
+  corner-shape: squircle;
+  background: transparent;
+  color: inherit;
+  font: 500 var(--text-body) / 1.4 var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+}
+
+.contents__entry:hover {
+  background: var(--fill);
+}
+
+.contents__entry:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: -2px;
+}
+
+/* Gruppe: Name wie ein Bild, ihre Bilder eingerückt darunter */
+.contents__list--group .contents__entry {
+  padding-left: var(--space-4);
+}
+
+.contents__list--group .contents__entry--region {
+  padding-left: var(--space-5);
+}
+
+.contents__entry--region {
+  padding-left: var(--space-4);
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+  font-weight: 400;
+}
+
+.contents__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Zahl der Anmerkungen als kleine Pille */
+.contents__count {
+  flex: none;
+  min-width: 24px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-pill);
+  corner-shape: round;
+  background: var(--fill);
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+  text-align: center;
+}
+
+/* „Rückgängig“ nach dem Löschen: schwebende Karte unten in der Mitte, auf Höhe der Sprachtaste. */
+.undo-toast {
+  position: absolute;
+  bottom: calc(var(--space-4) + 44px + var(--space-2));
+  left: 50%;
+  z-index: 3;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-4);
+  border-radius: var(--radius-pill);
+  corner-shape: round;
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-3);
+  font-size: var(--text-small);
+  white-space: nowrap;
+  transition:
+    opacity 200ms var(--ease-out),
+    transform 200ms var(--ease-out);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.undo-toast__action.button {
+  background: var(--fill);
+}
+
+/* Werkzeuge: Zeiger nach Werkzeug. Auswählen zeigt den Pfeil, über einem Bild oder einer Gruppe die Hand zum
+   Verschieben; Markieren das Fadenkreuz. Leertaste und Ziehen bleibt die greifende Hand. */
+.surface[data-tool="select"] {
+  cursor: default;
+}
+.surface[data-tool="select"][data-over="item"] {
+  cursor: move;
+}
+.surface[data-tool="mark"] {
+  cursor: crosshair;
+}
+.surface[data-mode="move"] {
+  cursor: move;
+}
+.surface[data-tool="select"][data-over="edge"],
+.surface[data-mode="resize"] {
+  cursor: ew-resize;
+}
+
+/* Auswahl beim Anordnen: das Gewählte wirkt angehoben. Heller Saum in Papierfarbe mit Haarkante und tieferer
+   Schatten, keine dunkle Linie (5.11.: „keine schwarze Border, wirkt extrem billig“). */
+.item-selected,
+.marquee {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.item-selected {
+  box-shadow:
+    0 0 0 4px var(--selection-halo),
+    0 0 0 5px var(--selection-edge),
+    var(--shadow-3);
+}
+
+.marquee {
+  background: var(--selection-fill);
+  box-shadow: inset 0 0 0 1px var(--selection-edge);
+  border-radius: 6px;
+}
+
+/* Unter einem gezogenen Bild: Schatten, Kante und Titel treten zurück, sonst lägen sie auf dem gezogenen Bild. */
+.surface-frame[data-under] {
+  box-shadow: none;
+}
+.surface-title[data-under] {
+  visibility: hidden;
+}
+
+/* Werkzeugleiste unten in der Mitte, als schwebende Pille wie die Rückfrage. */
+.toolbar {
+  position: absolute;
+  bottom: var(--space-4);
+  left: 50%;
+  z-index: 3;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  corner-shape: round;
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-2);
+  white-space: nowrap;
+}
+
+.toolbar__tool {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 36px;
+  padding: 0 var(--space-2) 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-pill);
+  corner-shape: round;
+  background: transparent;
+  color: var(--muted-foreground);
+  font: 500 var(--text-small) / 1.5 var(--font-ui);
+  cursor: pointer;
+  transition:
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.toolbar__tool:hover {
+  background: var(--fill);
+  color: var(--foreground);
+}
+
+.toolbar__tool:active {
+  transform: scale(0.97);
+}
+
+.toolbar__tool[aria-pressed="true"] {
+  background: var(--action);
+  color: var(--action-foreground);
+}
+
+.toolbar__tool kbd {
+  color: inherit;
+  opacity: 0.55;
+  font: 500 var(--text-small) / 1 var(--font-ui);
+}
+
+.toolbar__divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 var(--space-1);
+  background: var(--line);
+}
+
+.toolbar__info {
+  padding: 0 var(--space-1);
+  font-size: var(--text-small);
+  font-weight: 600;
+}
+
+/* Durchblättern: Pfeile und Stelle, ruhig neben den Werkzeugen. */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.stepper__button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition:
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.stepper__button:hover:not(:disabled) {
+  background: var(--fill);
+  color: var(--foreground);
+}
+
+.stepper__button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.stepper__button:disabled {
+  color: var(--faint-foreground);
+  cursor: default;
+}
+
+.stepper__count {
+  min-width: 4.5em;
+  font-size: var(--text-small);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* Leertaste gedrückt oder Ansicht wird gezogen: Hand, in jedem Werkzeug. Zuletzt, damit es die Werkzeugzeiger schlägt. */
+.surface[data-mode="space"],
+.surface[data-mode="space"][data-over="item"] {
+  cursor: grab;
+}
+.surface[data-mode="pan"],
+.surface[data-mode="pan"][data-over="item"] {
+  cursor: grabbing;
+}
+.surface[data-mode="draw"] {
+  cursor: crosshair;
+}
+
+/* Ziehen: Die Zielgruppe tönt sich dunkler, die Lücke ist eine weiche Vertiefung, wo das Bild landet. */
+.surface-group {
+  transition: background-color 120ms var(--ease-out);
+}
+/* Zielgruppe beim Ziehen: Kartenfarbe wie die Werkzeugleiste, hebt sich klar vom Grund ab (5.11.). */
+.surface-group[data-target] {
+  background: var(--card);
+}
+.surface-group[data-selected] {
+  background: var(--group-fill-target);
+}
+.surface-group[data-selected] {
+  box-shadow: var(--shadow-3);
+}
+.drop-slot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: var(--selection-fill);
+  box-shadow: inset 0 2px 12px var(--slot-shade);
+}
+
+/* Name einer Gruppe bearbeiten: Feld an der Stelle des Namens, gleiche Schrift, Kartenfläche wie die Leiste. */
+.group-name-editor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 0;
+}
+.group-name-editor__field {
+  position: absolute;
+  left: -10px;
+  bottom: 2px;
+  width: 280px;
+  height: 36px;
+  padding: 0 var(--space-1) 0 10px;
+  border: 0;
+  border-radius: var(--radius-child);
+  corner-shape: squircle;
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-2);
+  font: 600 var(--text-body) / 1.5 var(--font-ui);
+}
+.group-name-editor__field:focus-visible {
+  outline: none;
+}
+.surface-group__label[data-editing] {
+  visibility: hidden;
+}
+.group-name-editor__field::selection {
+  background: var(--selection-text);
+  /* ohne eigene Farbe färbt Chromium markierten Text hell */
+  color: var(--card-foreground);
+}
+
+/* Liste der Anmerkungen: Zähler oben rechts als Knopf, darunter eine Seitenleiste. Gleiche Sprache wie das
+   Inhaltsverzeichnis links (Pille beim Zeigen, Karte mit großem Radius), aber rechts verankert. */
+.notes {
+  position: relative;
+  justify-self: end;
+  margin-right: calc(-1 * var(--space-2));
+  -webkit-app-region: no-drag;
+}
+
+.notes__trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 36px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-pill);
+  corner-shape: round;
+  background: transparent;
+  color: var(--muted-foreground);
+  font: 500 var(--text-small) / 1.5 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out);
+}
+
+.notes__trigger:hover,
+.notes__trigger[aria-expanded="true"] {
+  background: var(--fill);
+  color: var(--foreground);
+}
+
+.notes__trigger:active {
+  scale: 0.97;
+}
+
+.notes__trigger:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+.notes__chevron {
+  flex: none;
+  transition: rotate 160ms var(--ease-out);
+}
+
+.notes__trigger[aria-expanded="true"] .notes__chevron {
+  rotate: 180deg;
+}
+
+/* Bleibt im DOM, damit auch das Schließen weich ist: display wechselt erst am Ende des Übergangs. */
+.notes__panel {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: var(--space-2);
+  display: none;
+  flex-direction: column;
+  width: 368px;
+  max-height: calc(100vh - var(--bar-height) - var(--space-4));
+  padding: var(--space-child);
+  border-radius: var(--radius-shell);
+  corner-shape: squircle;
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-3);
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+  transform-origin: top right;
+  transition:
+    opacity 140ms var(--ease-out),
+    transform 140ms var(--ease-out),
+    display 140ms allow-discrete;
+}
+
+.notes__panel[data-open] {
+  display: flex;
+  opacity: 1;
+  transform: none;
+  transition-duration: 200ms;
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.notes__list {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.notes__image {
+  margin: 0;
+  padding: var(--space-3) var(--space-2) var(--space-1);
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Beschränkt auf ein Bild: sein Name oben, daneben der Weg zurück zu allen. */
+.notes__filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-2);
+}
+
+.notes__filter-name {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notes__filter-all {
+  flex: none;
+  height: 28px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--fill);
+  color: var(--card-foreground);
+  font: 500 var(--text-small) / 28px var(--font-ui);
+  cursor: pointer;
+  transition: background-color 120ms var(--ease-out);
+}
+
+.notes__filter-all:hover {
+  background: var(--fill-hover);
+}
+
+.notes__row:first-child .notes__image {
+  padding-top: var(--space-1);
+}
+
+/* Eintrag: Ausschnitt links mit der Nummer wie auf dem Canvas, rechts Notiz und Ort. */
+.note-entry {
+  position: relative;
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-1);
+  border: 0;
+  border-radius: max(calc(var(--radius-shell) - var(--space-child)), var(--radius-floor));
+  corner-shape: squircle;
+  background: transparent;
+  color: inherit;
+  font: 400 var(--text-body) / 1.4 var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 120ms var(--ease-out);
+}
+
+.note-entry:hover {
+  background: var(--fill);
+}
+
+.note-entry[aria-current] {
+  background: var(--fill-hover);
+}
+
+.note-entry:active {
+  scale: 0.99;
+}
+
+/* Fokus mit der Tastatur: getönt wie beim Zeigen, keine dunkle Linie. */
+.note-entry:focus-visible {
+  outline: none;
+  background: var(--fill-hover);
+}
+
+.note-entry__thumb {
+  position: relative;
+  width: 88px;
+  height: 66px;
+  overflow: hidden;
+  /* Kind des Eintrags: sein Radius minus sein Polster */
+  border-radius: max(calc(var(--radius-shell) - var(--space-child) - var(--space-1)), var(--radius-floor));
+  corner-shape: squircle;
+  background: var(--fill);
+  box-shadow: inset 0 0 0 1px var(--image-edge);
+}
+
+.note-entry__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 200ms var(--ease-out);
+}
+
+.note-entry__image[data-loaded] {
+  opacity: 1;
+}
+
+/* Die Nummer sitzt wie auf dem Canvas als Nadel auf der Ecke; gewählt dreht sie den Ton. */
+.note-entry__pin {
+  position: absolute;
+  top: calc(var(--space-1) - 6px);
+  left: calc(var(--space-1) - 6px);
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-2);
+  font-size: var(--text-small);
+  font-weight: 600;
+  line-height: 24px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color 120ms var(--ease-out),
+    color 120ms var(--ease-out);
+}
+
+.note-entry__pin[data-done] {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--muted-foreground);
+}
+
+.note-entry__check {
+  color: var(--done-foreground);
+}
+
+.note-entry__reply {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.note-entry__who {
+  color: var(--done-foreground);
+  font-weight: 600;
+}
+
+.notes__done {
+  color: var(--done-foreground);
+}
+
+.note-entry[aria-current] .note-entry__pin {
+  background: var(--action);
+  color: var(--action-foreground);
+}
+
+.note-entry__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.note-entry__note {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  text-wrap: pretty;
+}
+
+.note-entry__note[data-empty] {
+  color: var(--faint-foreground);
+}
+
+.note-entry__where {
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notes__empty {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-3) var(--space-4);
+}
+
+.notes__empty-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.notes__hint {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+}
+
+.notes__keys {
+  flex: none;
+  padding: var(--space-2) var(--space-2) var(--space-1);
+}
+
+.notes__keys kbd {
+  display: inline-block;
+  min-width: 22px;
+  padding: 0 5px;
+  border-radius: var(--radius-floor);
+  background: var(--fill);
+  font: inherit;
+  line-height: 22px;
+  text-align: center;
+}
+
+/* Leiser Ausgang aus dem Inhaltsverzeichnis zu allen Canvases, abgesetzt durch Abstand, nicht durch eine Linie. */
+.contents__entry--switch {
+  margin-top: var(--space-2);
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+  font-weight: 400;
+}
+
+.contents__kbd {
+  padding: 0 6px;
+  border-radius: var(--radius-floor);
+  background: var(--fill);
+  font: inherit;
+  line-height: 22px;
+}
+
+/* Leeres Canvas: ein Satz in der Mitte, was hierher gehört. */
+.surface__empty-canvas {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: var(--space-1);
+  pointer-events: none;
+  text-align: center;
+}
+
+.surface__empty-canvas p {
+  margin: 0;
+}
+
+.surface__empty-canvas p + p {
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+}
+
+/* Wechsel zu einem anderen Canvas: Ebenen sofort weg, dann weich da, sobald das neue Canvas steht (useSurface). */
+.surface > :is(.surface__underlay, .surface__gl, .surface__overlay) {
+  transition: opacity 240ms var(--ease-out);
+}
+
+.surface[data-switching] > :is(.surface__underlay, .surface__gl, .surface__overlay) {
+  opacity: 0;
+  transition: none;
+}
+
+/* Griff am rechten Rand einer Gruppe: schmale Pille in Bildschirmgröße, mittig auf der Kante. */
+.surface-group__grip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 6px;
+  height: 48px;
+  margin: -24px 0 0 -3px;
+  border-radius: 3px;
+  background: var(--group-foreground);
+  opacity: 0.35;
+  transition: opacity 120ms var(--ease-out);
+}
+.surface-group__grip[data-active] {
+  opacity: 0.7;
+}

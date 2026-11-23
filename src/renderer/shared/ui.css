@@ -1,0 +1,70 @@
+/* Knöpfe für alle Bereiche, als Pillen. Jeder Knopf trägt data-option, damit er auch per Sprache geht.
+   Pillen bleiben echt rund (corner-shape round): als Squircle wirkt eine Pille flach. */
+
+.button {
+  -webkit-app-region: no-drag;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  height: 36px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  corner-shape: round;
+  background: var(--fill);
+  color: var(--foreground);
+  font: 600 var(--text-small) / 1.5 var(--font-ui);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform 160ms var(--ease-out),
+    background-color 160ms var(--ease-out),
+    opacity 160ms var(--ease-out);
+}
+
+.button:hover:not(:disabled) {
+  background: var(--fill-hover);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+/* Die eine Handlung je Zusammenhang */
+.button--primary {
+  background: var(--action);
+  color: var(--action-foreground);
+  box-shadow: var(--shadow-button);
+}
+
+.button--primary:hover:not(:disabled) {
+  background: var(--action-hover);
+}
+
+/* Nebenaktion: nur Text */
+.button--quiet {
+  background: transparent;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.button--quiet:hover:not(:disabled) {
+  background: var(--fill);
+  color: var(--foreground);
+}
+
+.button--small {
+  height: 32px;
+  padding: 0 var(--space-2);
+}

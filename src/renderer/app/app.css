@@ -1,0 +1,94 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font: var(--text-body) / 1.6 var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--foreground);
+  color: var(--card);
+}
+
+.app {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+  height: 100%;
+}
+
+/* Breite Bilder dürfen das Raster nicht aufziehen, sonst rutscht „Fertig“ aus dem Fenster. */
+.app > main {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+
+/* Pfad oben links: „Canvases / Name des Canvas“. Der erste Teil führt zur Übersicht, der zweite öffnet das Inhaltsverzeichnis. */
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  justify-self: start;
+  -webkit-app-region: no-drag;
+}
+
+.crumbs__home {
+  flex: none;
+  height: 36px;
+  /* Bündig mit dem Rand der Leiste, die Hover-Fläche steht links über. */
+  margin-left: calc(-1 * var(--space-2));
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--muted-foreground);
+  font: 500 var(--text-body) / 1.5 var(--font-ui);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.crumbs__home:hover {
+  background: var(--fill);
+  color: var(--foreground);
+}
+
+.crumbs__home:active {
+  transform: scale(0.97);
+}
+
+.crumbs__home:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+.crumbs__sep {
+  flex: none;
+  color: var(--faint-foreground);
+}
+
+/* Der Name des Canvas steht hinter dem Pfad, nicht mehr am Rand. */
+.crumbs .contents {
+  margin-left: 0;
+}

@@ -1,0 +1,229 @@
+/* Einstellungen: eine Karte in der Mitte, Rand abgedunkelt wie beim Spotlight. */
+
+.settings {
+  width: min(480px, calc(100vw - 2 * var(--space-4)));
+  max-height: calc(100vh - 2 * var(--space-5));
+  padding: var(--space-shell);
+  border: 0;
+  border-radius: var(--radius-shell);
+  corner-shape: squircle;
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-3);
+  font: 400 var(--text-body) / 1.5 var(--font-ui);
+  transition:
+    opacity 200ms var(--ease-out),
+    transform 200ms var(--ease-out),
+    overlay 200ms allow-discrete,
+    display 200ms allow-discrete;
+}
+
+.settings:not([open]) {
+  opacity: 0;
+  transform: scale(0.97);
+}
+
+@starting-style {
+  .settings[open] {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+.settings::backdrop {
+  background: var(--mark-scrim);
+}
+
+.settings__body {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-1);
+}
+
+.settings__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings__title {
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: 600;
+}
+
+.settings__section {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.settings__heading {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 600;
+}
+
+.settings__hint {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+}
+
+.settings__error {
+  margin: 0;
+  font-size: var(--text-small);
+  font-weight: 500;
+}
+
+.keywords {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.keyword {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-1) 0 var(--space-3);
+  border-radius: var(--radius-child);
+  corner-shape: squircle;
+  background: var(--fill);
+}
+
+.keyword__word {
+  font-weight: 600;
+}
+
+.keyword__action {
+  flex: 1;
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+}
+
+.keyword-add {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.field {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  corner-shape: round;
+  background: var(--fill);
+  color: var(--foreground);
+  font: 400 var(--text-small) / 1.5 var(--font-ui);
+}
+
+.field::placeholder {
+  color: var(--faint-foreground);
+}
+
+.field:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+.costs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.cost {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-child);
+  corner-shape: squircle;
+  background: var(--fill);
+}
+
+.cost dt {
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+}
+
+.cost dd {
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Auswahl in einer Reihe (Sprache): Pillen auf einer gemeinsamen Fläche, die gewählte als Karte. */
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+  justify-self: start;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--fill);
+}
+
+.segmented__item {
+  height: 30px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--muted-foreground);
+  font: 500 var(--text-small) / 1 var(--font-ui);
+  cursor: pointer;
+  transition:
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.segmented__item:hover {
+  color: var(--foreground);
+}
+
+.segmented__item:active {
+  transform: scale(0.97);
+}
+
+.segmented__item[aria-checked="true"] {
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-1);
+}
+
+.segmented__item:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
+
+/* Adresse und Modell des Entscheidungsdienstes nebeneinander, Knopf darunter. */
+.backend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  align-items: end;
+}
+
+.backend__field {
+  display: grid;
+  gap: 4px;
+  font-size: var(--text-small);
+  color: var(--muted-foreground);
+}
+
+.backend .button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+/* „Anderer Dienst …“: leise, linksbündig, klappt Adresse und Modell auf. */
+.settings__more {
+  justify-self: start;
+}

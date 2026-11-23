@@ -1,0 +1,118 @@
+/* Leiste oben, schwebend über dem Canvas: kein eigener Grund, nur auslaufende Unschärfe
+   (5.11.: kein abgesetzter grauer Kopf). Wartet Claude, steht in ihrer Mitte eine dunkle Karte mit der
+   Frage und „Fertig“. Fahrten und Beschriftungen halten Abstand (--bar-height). */
+
+.review-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4);
+  height: var(--bar-height);
+  padding: 0 var(--space-4);
+  color: var(--foreground);
+  -webkit-app-region: drag;
+  /* Klicks gehen durch die leere Leiste aufs Canvas; nur ihr Inhalt fängt sie. */
+  pointer-events: none;
+}
+
+.review-bar > * {
+  pointer-events: auto;
+}
+
+.review-bar__blur {
+  position: absolute;
+  inset: 0 0 -32px;
+  z-index: -1;
+  pointer-events: none;
+  /* Nur Unschärfe mit Verlaufsmaske, keine Tönung: auf dunklen Bildern wurde sie zum grauen Balken (5.11.). */
+}
+
+.blur-layer {
+  position: absolute;
+  inset: 0;
+  -webkit-backdrop-filter: blur(var(--b));
+  backdrop-filter: blur(var(--b));
+  mask-image: linear-gradient(to bottom, black var(--full), transparent var(--end));
+}
+
+.blur-layer[data-layer="1"] {
+  --b: 2px;
+  --full: 50%;
+  --end: 100%;
+}
+
+.blur-layer[data-layer="2"] {
+  --b: 6px;
+  --full: 35%;
+  --end: 75%;
+}
+
+.blur-layer[data-layer="3"] {
+  --b: 14px;
+  --full: 20%;
+  --end: 55%;
+}
+
+.review-bar__title {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.review-bar__count {
+  justify-self: end;
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+  font-variant-numeric: tabular-nums;
+}
+
+.claude-card {
+  -webkit-app-region: no-drag;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  max-width: 640px;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border-radius: var(--radius-shell);
+  corner-shape: squircle;
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-2);
+  transition:
+    opacity 200ms var(--ease-out),
+    transform 200ms var(--ease-out);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.claude-card__text {
+  display: grid;
+  min-width: 0;
+}
+
+.claude-card__who {
+  color: var(--faint-foreground);
+  font-size: var(--text-small);
+}
+
+.claude-card__prompt {
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.claude-card[data-sent] {
+  padding-right: var(--space-4);
+}

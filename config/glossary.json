@@ -1,0 +1,15 @@
+[
+  {"term": "MCP", "spoken": ["M C P", "Em Zeh Peh"], "meaning": "Model Context Protocol"},
+  {"term": "LLM", "spoken": ["L L M", "Elelem"], "meaning": "Large Language Model"},
+  {"term": "Jev", "spoken": ["Jeff", "Jef", "Dschev", "Chef"], "meaning": "decision model by TypeSafe"},
+  {"term": "TypeSafe", "spoken": ["Typsafe", "Type Safe", "Teipsafe"], "meaning": "provider of Jev"},
+  {"term": "Generative UI", "spoken": ["Generative Ju Ei", "generative You I"], "meaning": "Oberflächen, die ein Modell zusammensetzt"},
+  {"term": "Claude", "spoken": ["Klod", "Clod", "Kloud"], "meaning": "Modellfamilie von Anthropic"},
+  {"term": "Opus", "spoken": [], "meaning": "großes Claude-Modell"},
+  {"term": "Sonnet", "spoken": ["Sonett"], "meaning": "mittleres Claude-Modell"},
+  {"term": "Haiku", "spoken": ["Heiku"], "meaning": "kleines Claude-Modell"},
+  {"term": "Whisper", "spoken": ["Wisper", "Wispa"], "meaning": "Spracherkennung"},
+  {"term": "Figma", "spoken": ["Figmar", "Vigma"], "meaning": "Gestaltungswerkzeug"},
+  {"term": "Embedding", "spoken": ["Imbedding"], "meaning": "Vektor für einen Text"},
+  {"term": "Agent Skills", "spoken": ["Agent Skils", "Ejdschent Skills"], "meaning": "Anleitungen für Agenten"}
+]

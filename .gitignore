@@ -1,0 +1,9 @@
+node_modules/
+dist/
+data/
+build/
+*.log
+.DS_Store
+# Extensions are their own repositories, see src/shared/extensions.ts
+extensions/*
+!extensions/README.md

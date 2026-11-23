@@ -1,0 +1,367 @@
+/* Canvas wechseln: Karte im oberen Drittel wie Spotlight, Rand leicht abgedunkelt. Kein Rahmen, nur Schatten. */
+
+.switcher {
+  width: min(560px, calc(100vw - 2 * var(--space-4)));
+  max-height: min(560px, calc(100vh - 22vh - var(--space-5)));
+  margin: 18vh auto auto;
+  padding: var(--space-child);
+  border: 0;
+  border-radius: var(--radius-shell);
+  corner-shape: squircle;
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-3);
+  font: 400 var(--text-body) / 1.4 var(--font-ui);
+  overflow: hidden;
+  transform-origin: 50% 0;
+  transition:
+    opacity 140ms var(--ease-out),
+    transform 140ms var(--ease-out),
+    overlay 140ms allow-discrete,
+    display 140ms allow-discrete;
+}
+
+.switcher[open] {
+  display: flex;
+  flex-direction: column;
+  transition-duration: 180ms;
+}
+
+.switcher:not([open]) {
+  opacity: 0;
+  transform: scale(0.98);
+}
+
+@starting-style {
+  .switcher[open] {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+}
+
+.switcher::backdrop {
+  background: rgba(28, 28, 32, 0.12);
+  transition:
+    background-color 180ms var(--ease-out),
+    overlay 180ms allow-discrete,
+    display 180ms allow-discrete;
+}
+
+@starting-style {
+  .switcher[open]::backdrop {
+    background: rgba(28, 28, 32, 0);
+  }
+}
+
+/* Feld oben: groß, ohne Kasten; das Zeichen davor sagt, ob man sucht oder anlegt. */
+.switcher__field-row {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  height: 52px;
+  padding: 0 var(--space-1) 0 var(--space-3);
+}
+
+.switcher__icon {
+  flex: none;
+  color: var(--muted-foreground);
+}
+
+.switcher__field {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--card-foreground);
+  font: 500 var(--text-title) / 1.3 var(--font-ui);
+  letter-spacing: -0.01em;
+  caret-color: currentColor;
+}
+
+.switcher__field::placeholder {
+  color: var(--faint-foreground);
+}
+
+.switcher__field:focus-visible {
+  outline: none;
+}
+
+.switcher__field::selection {
+  background: var(--selection-text);
+  color: var(--card-foreground);
+}
+
+.switcher__hint {
+  margin: 0;
+  padding: 0 var(--space-3) var(--space-2) calc(var(--space-3) + 16px + var(--space-2));
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+}
+
+.switcher__list {
+  min-height: 0;
+  margin: 0;
+  padding: var(--space-1) 0 0;
+  overflow: auto;
+  list-style: none;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.switcher__row {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-1);
+  border: 0;
+  /* Kind der Karte: ihr Radius minus ihr Polster */
+  border-radius: max(calc(var(--radius-shell) - var(--space-child)), var(--radius-floor));
+  corner-shape: squircle;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Gewählt mit Pfeil oder Zeiger: eine Tonstufe, keine Linie. Kein Übergang, die Auswahl folgt sofort. */
+.switcher__row[data-active] {
+  background: var(--fill);
+}
+
+.switcher__cover {
+  display: block;
+  width: 64px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: max(calc(var(--radius-shell) - var(--space-child) - var(--space-1)), var(--radius-floor));
+  corner-shape: squircle;
+  background: var(--fill);
+  box-shadow: inset 0 0 0 1px var(--image-edge);
+}
+
+.switcher__cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  opacity: 0;
+  transition: opacity 200ms var(--ease-out);
+}
+
+.switcher__cover img[data-loaded] {
+  opacity: 1;
+}
+
+.switcher__cover--new {
+  display: grid;
+  place-items: center;
+  box-shadow: none;
+  color: var(--muted-foreground);
+}
+
+.switcher__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.switcher__title {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.switcher__meta,
+.switcher__current,
+.switcher__none {
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+}
+
+.switcher__meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.switcher__current {
+  padding-right: var(--space-2);
+}
+
+.switcher__none {
+  padding: var(--space-2) var(--space-3);
+}
+
+.switcher__kbd {
+  margin-right: var(--space-1);
+  padding: 0 6px;
+  border-radius: var(--radius-floor);
+  background: var(--fill);
+  color: var(--muted-foreground);
+  font: 400 var(--text-small) / 22px var(--font-ui);
+}
+
+/* Startansicht ohne offenes Canvas: Raster aus Kacheln, Vorschau groß, darunter Name und Stand. Keine Rahmen,
+   nur Töne und Schatten; die Kacheln kommen kurz nacheinander herein. */
+.home {
+  height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+/* Über einem offenen Canvas (⌘O): deckt die Fläche ab, die Kopfzeile bleibt. Kommt weich herein. */
+.home[data-layer] {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: var(--background);
+  animation: home-layer-in 180ms var(--ease-out) both;
+}
+
+@keyframes home-layer-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.home__inner {
+  width: min(1180px, calc(100% - 2 * var(--space-5)));
+  margin: 0 auto;
+  padding: 14vh 0 var(--space-5);
+}
+
+.home__title {
+  margin: 0;
+  color: var(--foreground);
+  font-size: var(--text-title);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.home__hint {
+  margin: var(--space-1) 0 0;
+  color: var(--muted-foreground);
+}
+
+.home__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-4) var(--space-3);
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home__item {
+  animation: home-in 260ms var(--ease-out) both;
+  animation-delay: calc(var(--i) * 30ms + 30ms);
+}
+
+@keyframes home-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.home-tile {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.home-tile__cover {
+  display: block;
+  aspect-ratio: 4 / 3;
+  margin-bottom: var(--space-1);
+  overflow: hidden;
+  border-radius: var(--radius-child);
+  corner-shape: squircle;
+  background: var(--fill);
+  box-shadow: var(--shadow-1);
+  transition:
+    box-shadow 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.home-tile:hover .home-tile__cover {
+  box-shadow: var(--shadow-2);
+  transform: translateY(-2px);
+}
+
+.home-tile:active .home-tile__cover {
+  transform: scale(0.98);
+}
+
+.home-tile:focus-visible {
+  outline: none;
+}
+
+.home-tile:focus-visible .home-tile__cover {
+  box-shadow: var(--shadow-3);
+}
+
+.home-tile__cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  opacity: 0;
+  transition: opacity 220ms var(--ease-out);
+}
+
+.home-tile__cover img[data-loaded] {
+  opacity: 1;
+}
+
+.home-tile__cover--new {
+  display: grid;
+  place-items: center;
+  box-shadow: none;
+  color: var(--muted-foreground);
+}
+
+.home-tile--new:hover .home-tile__cover--new {
+  background: var(--fill-hover);
+  box-shadow: none;
+}
+
+.home-tile__title {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-tile__meta {
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: var(--text-small);
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home__item {
+    animation: none;
+  }
+}

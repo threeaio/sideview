@@ -1,0 +1,102 @@
+/* Unten links über der Fläche. Klein und ruhig, solange nichts passiert. */
+
+.voice {
+  position: fixed;
+  left: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 20;
+  display: grid;
+  justify-items: start;
+  gap: var(--space-1);
+  max-width: min(640px, calc(100vw - 2 * var(--space-4)));
+  pointer-events: none;
+}
+
+/* Reicht sie bis zur Werkzeugleiste, steht sie eine Zeile höher. */
+.voice[data-lifted] {
+  bottom: var(--toolbar-clear);
+}
+
+.voice > * {
+  pointer-events: auto;
+}
+
+.voice__pill {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-2);
+  font-size: var(--text-small);
+}
+
+.voice__pill--live {
+  background: var(--action);
+  color: var(--action-foreground);
+  font-weight: 600;
+}
+
+.voice__level {
+  width: 64px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  transform-origin: left center;
+  transition: transform 60ms linear;
+}
+
+.voice__said {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.voice__did {
+  flex: none;
+  color: var(--muted-foreground);
+}
+
+.voice__did::before {
+  content: "→ ";
+}
+
+.voice__ask {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-child) var(--space-child) var(--space-child) var(--space-4);
+  border-radius: var(--radius-shell);
+  corner-shape: squircle;
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-2);
+  font-size: var(--text-small);
+}
+
+.voice__ask > span {
+  margin-right: var(--space-1);
+  color: var(--muted-foreground);
+}
+
+.voice__number {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.voice__hint {
+  height: 36px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  color: var(--muted-foreground);
+  box-shadow: var(--shadow-1);
+  font: 500 var(--text-small) / 1.5 var(--font-ui);
+  cursor: pointer;
+  user-select: none;
+}

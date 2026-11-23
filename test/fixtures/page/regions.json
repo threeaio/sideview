@@ -1,0 +1,190 @@
+{
+  "source": "https://fixture.example/",
+  "createdAt": "2026-11-22T12:00:00.000Z",
+  "views": {
+    "desktop": {
+      "image": "desktop.png",
+      "scale": 1,
+      "regions": [
+        {
+          "kind": "head",
+          "label": "Kopf",
+          "heading": "Northwind Coffee",
+          "aliases": [
+            "kopf",
+            "oben"
+          ],
+          "rect": [
+            0,
+            0,
+            1440,
+            820
+          ]
+        },
+        {
+          "kind": "section",
+          "label": "Roasted on Monday, at your door by Thursday",
+          "heading": "Roasted on Monday, at your door by Thursday",
+          "aliases": [
+            "features"
+          ],
+          "rect": [
+            0,
+            820,
+            1440,
+            1200
+          ]
+        },
+        {
+          "kind": "section",
+          "label": "How it works",
+          "heading": "How it works",
+          "aliases": [
+            "steps"
+          ],
+          "rect": [
+            0,
+            2020,
+            1440,
+            1280
+          ]
+        },
+        {
+          "kind": "section",
+          "label": "Pick a plan",
+          "heading": "Pick a plan",
+          "aliases": [
+            "pricing"
+          ],
+          "rect": [
+            0,
+            3300,
+            1440,
+            1200
+          ]
+        },
+        {
+          "kind": "section",
+          "label": "Questions",
+          "heading": "Questions",
+          "aliases": [
+            "faq"
+          ],
+          "rect": [
+            0,
+            4500,
+            1440,
+            900
+          ]
+        },
+        {
+          "kind": "foot",
+          "label": "Fuß",
+          "heading": "Northwind Coffee",
+          "aliases": [
+            "fuss",
+            "unten"
+          ],
+          "rect": [
+            0,
+            5400,
+            1440,
+            600
+          ]
+        }
+      ]
+    },
+    "mobile": {
+      "image": "mobile.png",
+      "scale": 2,
+      "regions": [
+        {
+          "kind": "head",
+          "label": "Kopf",
+          "heading": "Northwind Coffee",
+          "aliases": [
+            "kopf",
+            "oben"
+          ],
+          "rect": [
+            0,
+            0,
+            780,
+            1520
+          ]
+        },
+        {
+          "kind": "section",
+          "label": "Roasted on Monday, at your door by Thursday",
+          "heading": "Roasted on Monday, at your door by Thursday",
+          "aliases": [
+            "features"
+          ],
+          "rect": [
+            0,
+            1520,
+            780,
+            2520
+          ]
+        },
+        {
+          "kind": "section",
+          "label": "How it works",
+          "heading": "How it works",
+          "aliases": [
+            "steps"
+          ],
+          "rect": [
+            0,
+            4040,
+            780,
+            2200
+          ]
+        },
+        {
+          "kind": "section",
+          "label": "Pick a plan",
+          "heading": "Pick a plan",
+          "aliases": [
+            "pricing"
+          ],
+          "rect": [
+            0,
+            6240,
+            780,
+            3000
+          ]
+        },
+        {
+          "kind": "section",
+          "label": "Questions",
+          "heading": "Questions",
+          "aliases": [
+            "faq"
+          ],
+          "rect": [
+            0,
+            9240,
+            780,
+            1800
+          ]
+        },
+        {
+          "kind": "foot",
+          "label": "Fuß",
+          "heading": "Northwind Coffee",
+          "aliases": [
+            "fuss",
+            "unten"
+          ],
+          "rect": [
+            0,
+            11040,
+            780,
+            1280
+          ]
+        }
+      ]
+    }
+  }
+}
