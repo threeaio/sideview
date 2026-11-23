@@ -74,6 +74,8 @@ function createWindow(): BrowserWindow {
       backgroundThrottling: !quiet,
     },
   });
+  // Die Titelleiste trägt immer den App-Namen (package.json), nicht den Seitentitel der Oberfläche.
+  w.on("page-title-updated", (e) => e.preventDefault());
   const devUrl = process.env.CANVAS_RENDERER_URL;
   if (devUrl) void w.loadURL(devUrl);
   else void w.loadFile(path.join(ROOT, "dist/renderer/index.html"));

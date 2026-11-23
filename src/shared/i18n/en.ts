@@ -22,9 +22,9 @@ export const en = {
   "app.crumbs": "Path",
   "app.canvases": "Canvases",
   "app.canvasesTitle": "All canvases (⌘O)",
-  "review.waiting": "Claude is waiting",
+  "review.waiting": "Your agent is waiting",
   "review.finish": "Done",
-  "review.sent": "Sent to Claude",
+  "review.sent": "Sent to your agent",
 
   "count.images": { one: "1 image", other: "{count} images" },
   "count.annotations": { one: "1 note", other: "{count} notes" },
@@ -32,6 +32,8 @@ export const en = {
   "count.versions": "{count} versions, newest in front",
 
   "notes.panel": "Notes",
+  /** Vor der Antwort an einer erledigten Notiz. */
+  "notes.replyBy": "Agent",
   "notes.done": "{count} done",
   "notes.emptyTitle": "No notes yet",
   "notes.emptyHint": "Press M, or hold Shift and drag, to draw a frame around a spot.",
@@ -64,7 +66,7 @@ export const en = {
   "stepper.at": "{at} / {total}",
 
   "canvas.empty": "Still empty",
-  "canvas.emptyHint": "Drag images here from the Finder, or ask Claude to put something on the canvas.",
+  "canvas.emptyHint": "Drag images here from the Finder, or ask your agent to put something on the canvas.",
   "canvas.drop": { one: "Drop image here", other: "Drop {count} images here" },
   "canvas.missing": "Image not available",
   "canvas.moveHint": "Drag to move the note",
@@ -92,7 +94,7 @@ export const en = {
 
   "home.title": "Canvases",
   "home.none": "No canvas yet",
-  "home.hint": "Claude opens a canvas here, or you drag images here from the Finder.",
+  "home.hint": "Your agent opens a canvas here, or you drag images here from the Finder.",
   "home.new": "New canvas",
   "home.open": "Open",
   "home.empty": "Empty",
@@ -226,7 +228,7 @@ export const en = {
   "cmd.previous.label": "Previous",
   "cmd.previous.phrases": ["previous", "previous image", "previous one", "the previous one", "one back"],
 
-  "cmd.finish.label": "Sent to Claude",
+  "cmd.finish.label": "Sent to your agent",
   "cmd.finish.phrases": ["done", "i'm done", "finished", "send it", "send it to claude", "that's it"],
 
   "cmd.canvases.label": "Canvases",

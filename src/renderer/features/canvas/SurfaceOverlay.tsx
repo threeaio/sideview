@@ -125,13 +125,13 @@ export function SurfaceOverlay({ state, editing, engine, arrange, onNotes }: { s
                 <PinContent n={n} done={done} />
               </span>
             )}
-            {/* Eine Karte neben der Nummer: Notiz und Claudes Antwort, gewählt darunter die Knöpfe. */}
+            {/* Eine Karte neben der Nummer: Notiz und die Antwort des Agenten, gewählt darunter die Knöpfe. */}
             {(isSelected || a.note || a.done?.reply) && (
               <span className="mark-label__note">
                 {a.note && <span className="mark-label__text">{a.note}</span>}
                 {a.done?.reply && (
                   <span className="mark-label__reply">
-                    <span className="mark-label__who">Claude</span> {a.done.reply}
+                    <span className="mark-label__who">{t("notes.replyBy")}</span> {a.done.reply}
                   </span>
                 )}
                 {isSelected && (

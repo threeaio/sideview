@@ -183,7 +183,7 @@ function NoteEntry({ canvas, a, n, item, titled, current, load, onClick }: { can
         </span>
         {a.done?.reply && (
           <span className="note-entry__reply">
-            <span className="note-entry__who">Claude</span> {a.done.reply}
+            <span className="note-entry__who">{t("notes.replyBy")}</span> {a.done.reply}
           </span>
         )}
         {(where || a.done) && <span className="note-entry__where">{[where, a.done ? t("notes.doneAt", { when: doneTime(a.done.at, i18n) }) : null].filter(Boolean).join(" · ")}</span>}

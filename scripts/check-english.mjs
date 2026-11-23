@@ -119,7 +119,7 @@ try {
   const { reviewId } = await api("POST", `/api/canvases/${NAME}/reviews`, { prompt: "Does the header work?" });
   await page.waitForSelector('.claude-card [data-option="fertig"]:not([disabled])', { timeout: 5000 });
   const card = await text(".claude-card");
-  check("Review bar: “Claude is waiting” and “Done”", /Claude is waiting/.test(card) && (await text('.claude-card [data-option="fertig"]')) === "Done", { card });
+  check("Review bar: “Your agent is waiting” and “Done”", /Your agent is waiting/.test(card) && (await text('.claude-card [data-option="fertig"]')) === "Done", { card });
   await shot("1-waiting");
 
   // 4. Sprache: whisper muss bereit sein.
@@ -161,8 +161,8 @@ try {
   // 6. „Done“ beendet die Besprechung.
   const v4 = await say("Done");
   const status = await api("GET", `/api/reviews/${reviewId}?wait=5000`);
-  const sent = await waitText(".claude-card[data-sent]", "Sent to Claude", 3000);
-  check("Voice “Done” finishes the review", v4.decision?.id === "fertig" && status.status !== "waiting" && status.result?.annotations?.length === 1 && sent === "Sent to Claude", { ...v4, status: status.status, sent });
+  const sent = await waitText(".claude-card[data-sent]", "Sent to your agent", 3000);
+  check("Voice “Done” finishes the review", v4.decision?.id === "fertig" && status.status !== "waiting" && status.result?.annotations?.length === 1 && sent === "Sent to your agent", { ...v4, status: status.status, sent });
   check("Notes counter after the note", (await text(".notes__label")) === "1 note", { notes: await text(".notes__label") });
   await shot("3-sent");
 

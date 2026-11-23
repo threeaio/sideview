@@ -27,9 +27,9 @@ export const de = {
   "app.crumbs": "Pfad",
   "app.canvases": "Canvases",
   "app.canvasesTitle": "Alle Canvases (⌘O)",
-  "review.waiting": "Claude wartet",
+  "review.waiting": "Dein Agent wartet",
   "review.finish": "Fertig",
-  "review.sent": "An Claude geschickt",
+  "review.sent": "An deinen Agenten geschickt",
 
   // Zählwörter
   "count.images": { one: "1 Bild", other: "{count} Bilder" },
@@ -39,6 +39,7 @@ export const de = {
 
   // Liste der Anmerkungen
   "notes.panel": "Anmerkungen",
+  "notes.replyBy": "Agent",
   "notes.done": "{count} erledigt",
   "notes.emptyTitle": "Noch keine Anmerkungen",
   "notes.emptyHint": "Mit M oder Shift und Ziehen einen Rahmen um eine Stelle ziehen.",
@@ -74,7 +75,7 @@ export const de = {
 
   // Fläche
   "canvas.empty": "Noch leer",
-  "canvas.emptyHint": "Bilder aus dem Finder hierher ziehen oder Claude bitten, etwas aufzulegen.",
+  "canvas.emptyHint": "Bilder aus dem Finder hierher ziehen oder deinen Agenten bitten, etwas aufzulegen.",
   "canvas.drop": { one: "Bild hier ablegen", other: "{count} Bilder hier ablegen" },
   "canvas.missing": "Bild nicht verfügbar",
   "canvas.moveHint": "Ziehen verschiebt die Anmerkung",
@@ -104,7 +105,7 @@ export const de = {
   // Startansicht und Wechsel der Canvases
   "home.title": "Canvases",
   "home.none": "Noch kein Canvas",
-  "home.hint": "Claude öffnet hier ein Canvas, oder du ziehst Bilder aus dem Finder hierher.",
+  "home.hint": "Dein Agent öffnet hier ein Canvas, oder du ziehst Bilder aus dem Finder hierher.",
   "home.new": "Neuer Canvas",
   "home.open": "Offen",
   "home.empty": "Leer",
@@ -243,7 +244,7 @@ export const de = {
   "cmd.previous.phrases": ["voriges", "vorheriges", "voriges bild", "vorheriges bild", "das vorige", "eins zurück"],
 
   // Sprachbefehle: Besprechung
-  "cmd.finish.label": "An Claude geschickt",
+  "cmd.finish.label": "An deinen Agenten geschickt",
   "cmd.finish.phrases": ["fertig", "abschicken", "das wars", "das war es", "schick es claude"],
 
   // Sprachbefehle: Canvases
