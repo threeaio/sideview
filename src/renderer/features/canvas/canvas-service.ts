@@ -1,6 +1,6 @@
 // Service der Fläche: einzige Stelle zwischen Hooks und Transport. Ohne React.
 
-import type { Annotation, Layout, RemovedItems } from "../../../shared/contracts.ts";
+import type { Annotation, Layout, RemovedItems, RemovedVersions } from "../../../shared/contracts.ts";
 import type { AnnotationPatch, NewAnnotationInput, Stage, ThumbnailRequest } from "../../../shared/ipc.ts";
 import { bridge } from "../../shared/bridge.ts";
 
@@ -27,6 +27,8 @@ export const canvasService = {
   applyLayout: (canvas: string, layout: Layout) => bridge.applyLayout(canvas, layout),
   removeItems: (canvas: string, ids: string[]) => bridge.removeItems(canvas, ids),
   restoreItems: (canvas: string, removed: RemovedItems) => bridge.restoreItems(canvas, removed),
+  removeVersions: (canvas: string, itemId: string, indices: number[]) => bridge.removeVersions(canvas, itemId, indices),
+  restoreVersions: (canvas: string, removed: RemovedVersions) => bridge.restoreVersions(canvas, removed),
   thumbnail: (req: ThumbnailRequest) => bridge.thumbnail(req),
   onUndo: bridge.onUndo,
   onRedo: bridge.onRedo,

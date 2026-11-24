@@ -17,6 +17,8 @@
     "check:labels": "npm run build:renderer && node scripts/check-labels.mjs",
     "check:scrim": "npm run build:renderer && node scripts/check-scrim.mjs",
     "check:open": "npm run build:renderer && node scripts/check-open.mjs",
+    "check:compare": "npm run build:renderer && node scripts/check-compare.mjs",
+    "check:voice-ui": "npm run build:renderer && node scripts/check-voice-ui.mjs",
     "check:npx": "node scripts/check-npx.mjs"
   },
   "devDependencies": {
@@ -45,7 +47,7 @@
     "node": ">=24"
   },
   "main": "src/electron/main.ts",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "bin": {
     "sideview": "bin/sideview.mjs"
   },

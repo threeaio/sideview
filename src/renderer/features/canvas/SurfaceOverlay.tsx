@@ -2,11 +2,11 @@
 // Entwurf und Notizfeld. Weit weg zeigt nur die Marke die Anmerkungen an; nah kommen Rahmen und Nummern dazu.
 // Lage in Weltkoordinaten (data-wx …); useSurface setzt sie im Takt der Kamera auf den Bildschirm.
 
-import { Fragment, useCallback } from "react";
+import { Fragment, useCallback, type CSSProperties } from "react";
 import { isPoint, type CanvasState } from "../../../shared/contracts.ts";
 import type { WorldRect } from "./engine/camera.ts";
 import { imageToWorld, itemWorldRect } from "./engine/geometry.ts";
-import { anchorAttrs, attachAttrs, sizeAttrs, worldAttrs } from "./engine/overlay.ts";
+import { anchorAttrs, attachAttrs, sizeAttrs, titleRoomAttrs, worldAttrs } from "./engine/overlay.ts";
 import type { Engine } from "./engine/engine.ts";
 import { MarkHandles, annotationTarget, draftTarget, useReshape } from "./MarkHandles.tsx";
 import { isPointDraft, type AnnotationEditing } from "./useAnnotationEditing.ts";
@@ -14,7 +14,7 @@ import type { Arrange } from "./useArrange.ts";
 import { GroupNameEditor } from "./GroupNameEditor.tsx";
 import { useT } from "../../shared/i18n.tsx";
 
-export function SurfaceOverlay({ state, editing, engine, arrange, onNotes }: { state: CanvasState; editing: AnnotationEditing; engine: Engine | null; arrange: Arrange; onNotes(itemId: string): void }) {
+export function SurfaceOverlay({ state, editing, engine, arrange, onNotes, onCompare }: { state: CanvasState; editing: AnnotationEditing; engine: Engine | null; arrange: Arrange; onNotes(itemId: string): void; onCompare(itemId: string): void }) {
   const { selected, drawing, editor, saving, adjusting } = editing;
   const { t } = useT();
   const chosen = arrange.selection;
@@ -46,18 +46,35 @@ export function SurfaceOverlay({ state, editing, engine, arrange, onNotes }: { s
         return (
           <Fragment key={item.id}>
             {item.tiles && <div className="surface-frame" data-round data-under={arrange.covered.has(item.id) || undefined} {...worldAttrs(r)} />}
-            {/* Marke oben links auf dem Bild: Name, daneben die Zahl der Anmerkungen; die Zahl öffnet die Liste nur für dieses Bild. */}
-            <div className="surface-title" data-under={arrange.covered.has(item.id) || undefined} {...anchorAttrs(r.x, r.y)} data-ww={r.w} {...sizeAttrs({ ...r, h: 0 })}>
+            {/* Marke über dem Bild links (23.11., vorher auf dem Bild): Name, Fassungen, Zahl der Anmerkungen; die Zahl öffnet
+                die Liste nur für dieses Bild. Reicht der Platz über dem Bild nicht (weit rausgezoomt), rückt sie auf das Bild. */}
+            <div
+              className="surface-title"
+              data-under={arrange.covered.has(item.id) || undefined}
+              {...anchorAttrs(r.x, r.y)}
+              data-ww={r.w}
+              {...sizeAttrs({ ...r, h: 0 })}
+              {...titleRoomAttrs(Math.min(2, item.versions?.length ?? 0))}
+              style={{ "--sheets": Math.min(2, item.versions?.length ?? 0) } as CSSProperties}
+            >
               <span className="surface-title__pill" data-obstacle data-item={item.id}>
                 <span className="surface-title__text">{item.title}</span>
                 {item.versions?.length ? (
-                  <span className="surface-title__versions" title={t("count.versions", { count: item.versions.length + 1 })}>
+                  // Das Stapelzeichen mit der Zahl öffnet den Vergleich der Fassungen.
+                  <button
+                    type="button"
+                    className="surface-title__versions"
+                    data-surface-ui
+                    data-option={`fassungen-bild-${i}`}
+                    title={`${t("count.versions", { count: item.versions.length + 1 })} – ${t("compare.openTitle")}`}
+                    onClick={() => onCompare(item.id)}
+                  >
                     <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
                       <rect x="1.5" y="3.5" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.3" />
                       <path d="M4 1.5h5a1.5 1.5 0 0 1 1.5 1.5v5" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
                     </svg>
                     {item.versions.length + 1}
-                  </span>
+                  </button>
                 ) : null}
                 {mine.length > 0 && (
                   <button

@@ -18,7 +18,8 @@ export type Stepper = {
   previous(): void;
 };
 
-export function useImageStepper(engine: Engine | null, state: CanvasState | null): Stepper {
+/** `paused`: solange etwas anderes die Fläche deckt (Fassungsvergleich), keine Sprachbefehle. */
+export function useImageStepper(engine: Engine | null, state: CanvasState | null, paused = false): Stepper {
   const order = state ? readingOrder(state) : [];
   const { t, phrases } = useT();
   const [current, setCurrent] = useState<string | null>(null);
@@ -71,7 +72,7 @@ export function useImageStepper(engine: Engine | null, state: CanvasState | null
 
   useVoiceCommands("stepper", {
     commands:
-      order.length > 1
+      order.length > 1 && !paused
         ? [
             { id: "naechstes-bild", label: t("cmd.next.label"), meaning: "Go to the next image in order (like the right arrow key).", phrases: phrases("cmd.next.phrases"), run: next },
             { id: "voriges-bild", label: t("cmd.previous.label"), meaning: "Go to the previous image in order (like the left arrow key).", phrases: phrases("cmd.previous.phrases"), run: previous },

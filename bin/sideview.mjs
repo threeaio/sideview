@@ -5,7 +5,7 @@
 //
 //   npx github:<repo>            first time: init, then start; later: start
 //   npx github:<repo> init       copy the app, register the MCP server with Claude Code (asks before each step)
-//   npx github:<repo> start      start the app (it also starts by itself when Claude opens a canvas)
+//   npx github:<repo> start      start the app (it also starts by itself when the coding agent opens a canvas)
 //   npx github:<repo> status     what is installed and what voice needs
 //   npx github:<repo> uninstall  remove the MCP server and the app copy; your canvases stay
 //
@@ -142,7 +142,7 @@ function registerMcp() {
     fail(`claude mcp add failed: ${(r.stderr || r.stdout).trim().slice(0, 300)}`);
     return printManualMcp();
   }
-  ok(`MCP server "${SLUG}" registered with Claude Code (user scope). New Claude sessions can use it.`);
+  ok(`MCP server "${SLUG}" registered with Claude Code (user scope). New Claude Code sessions can use it.`);
 }
 
 async function voiceReport(dir) {
@@ -199,7 +199,7 @@ async function init() {
   step("Voice (optional)");
   await voiceReport(appDir);
   step("Website screenshots (optional)");
-  note(`Claude can shoot full-page screenshots with regions with the page-shots skill: npx github:${REPO.replace(/\/[^/]+$/, "")}/page-shots install`);
+  note(`Your coding agent can shoot full-page screenshots with regions with the page-shots skill: npx github:${REPO.replace(/\/[^/]+$/, "")}/page-shots install`);
   out(`\nDone. In Claude Code, try: "Open my last screenshot on the canvas."`);
   return true;
 }

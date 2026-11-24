@@ -40,3 +40,27 @@ test("Kacheln für einen ganzseitigen Screenshot entstehen einmal und liegen dan
   assert.equal(tileFile(manifest.key, "../../etc/passwd"), null);
   assert.equal(tileFile("../x", "1/0_0.png"), null);
 });
+
+test("verwaiste Kacheln werden gelöscht, benutzte und frische bleiben", async () => {
+  const { pruneTiles, tileKeyFor } = await import("./tiles.ts");
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "tiles-prune-"));
+  const dir = path.join(root, "tiles");
+  const image = path.join(root, "bild.png");
+  await fs.writeFile(image, "x");
+  const used = await tileKeyFor(image);
+  const old = "0123456789abcdef";
+  const fresh = "fedcba9876543210";
+  for (const k of [used, old, fresh]) {
+    await fs.mkdir(path.join(dir, k, "image_files", "0"), { recursive: true });
+    await fs.writeFile(path.join(dir, k, "image_files", "0", "0_0.png"), "1234");
+  }
+  await fs.mkdir(path.join(dir, "kein-schluessel"));
+  const now = Date.now();
+  const long = new Date(now - 3 * 86_400_000);
+  for (const k of [used, old]) await fs.utimes(path.join(dir, k), long, long);
+
+  const result = await pruneTiles([image, path.join(root, "fehlt.png")], { dir, now });
+  assert.deepEqual(result, { removed: 1, bytes: 4 });
+  assert.deepEqual((await fs.readdir(dir)).sort(), [used, fresh, "kein-schluessel"].sort());
+  await fs.rm(root, { recursive: true, force: true });
+});

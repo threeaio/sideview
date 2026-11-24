@@ -7,10 +7,11 @@ import path from "node:path";
 import { imageSizeFromFile } from "image-size/fromFile";
 import { paths } from "../shared/config.ts";
 import { REPLY_MAX_CHARS, type AnnotationDone } from "../shared/contracts.ts";
-import type { Annotation, AnnotationSource, Layout, CanvasState, CanvasSummary, Group, ImageItem, ImageOrigin, OpenRequest, OriginInput, Rect, RemovedItems } from "../shared/contracts.ts";
+import type { Annotation, AnnotationSource, Layout, CanvasState, CanvasSummary, Group, ImageItem, ImageOrigin, OpenRequest, OriginInput, Rect, RemovedItems, RemovedVersions } from "../shared/contracts.ts";
 import { clampRect, defaultTitle, resolveAnnotations, resolveRemoval, emptyCanvas, metaProblem, originProblem, resolveOrigin, uniqueTitle, fromJsonCanvas, placeDropped, placeRight, slugify, stackVersion, summarize, toJsonCanvas, type JsonCanvasFile } from "./canvas-core.ts";
 import { Failure } from "./failure.ts";
 import { groupArea } from "../shared/groups.ts";
+import { putVersions, takeVersions } from "../shared/versions.ts";
 import { clearOf, freeSpot, groupOrigin, groupWidth, itemBox, makeRoom, rowPositions } from "../shared/layout.ts";
 import { ensureRegions, knownRegions, loadRegionIndex, pageOrigin } from "./regions.ts";
 
@@ -255,6 +256,43 @@ export async function createCanvasStore({ dir = paths.canvases(), now = () => ne
         state.updatedAt = now();
         await write(state);
         return removed;
+      });
+    },
+
+    /**
+     * Frühere Fassungen eines Bildes löschen, samt den Anmerkungen, die auf ihnen entstanden. `ref` wie bei `remove`
+     * (Nummer, id oder Titel), `indices` in `versions` (0 = älteste). Unbekannte Angaben: nichts wird gelöscht.
+     */
+    removeVersions(name: string, ref: string, indices: number[]): Promise<{ state: CanvasState; removed: RemovedVersions }> {
+      return serial(name, async () => {
+        const state = await mustRead(name);
+        const { ids, missing } = resolveRemoval(state, { images: [ref] });
+        const at = state.items.findIndex((i) => i.id === ids[0]);
+        if (missing.length || ids.length !== 1 || at < 0) throw new Failure("not_found", `remove ${ref}`);
+        const item = state.items[at]!;
+        const count = item.versions?.length ?? 0;
+        const bad = indices.filter((i) => !Number.isInteger(i) || i < 0 || i >= count);
+        if (bad.length || indices.length === 0) throw new Failure("not_found", `remove version ${bad.map((i) => i + 1).join(", ") || "-"} of ${item.title} (${count} earlier versions)`);
+        const taken = takeVersions(item, state.annotations, indices);
+        state.items[at] = taken.item;
+        state.annotations = taken.annotations;
+        state.updatedAt = now();
+        await write(state);
+        return { state, removed: taken.removed };
+      });
+    },
+
+    /** Rückgängig nach `removeVersions`. Ist das Bild inzwischen weg, passiert nichts. */
+    restoreVersions(name: string, removed: RemovedVersions): Promise<void> {
+      return serial(name, async () => {
+        const state = await mustRead(name);
+        const at = state.items.findIndex((i) => i.id === removed.itemId);
+        if (at < 0) return;
+        const put = putVersions(state.items[at]!, state.annotations, removed);
+        state.items[at] = put.item;
+        state.annotations = put.annotations;
+        state.updatedAt = now();
+        await write(state);
       });
     },
 

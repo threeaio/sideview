@@ -2,28 +2,50 @@
 // Übersicht, näher und weiter weg, Anmerkungen wählen, ändern und löschen, Notiz diktieren und sichern.
 
 import type { CanvasState } from "../../../shared/contracts.ts";
+import { groupArea } from "../../../shared/groups.ts";
 import { normalize, numberWords } from "../../../shared/voice.ts";
 import { useT } from "../../shared/i18n.tsx";
 import { useVoiceCommands, type VoiceCommand } from "../voice/index.ts";
+import { panBy } from "./engine/camera.ts";
 import type { Engine } from "./engine/engine.ts";
 import { contentBounds } from "./engine/geometry.ts";
 import { imageName, itemInView, showAnnotation, showGroup, showItem, showRegion } from "./navigation.ts";
 import type { AnnotationEditing } from "./useAnnotationEditing.ts";
+import type { Arrange } from "./useArrange.ts";
+import type { Compare } from "./useCompare.ts";
 import type { Contents } from "./useContents.ts";
 
 /** Faktor für „näher“ und „weiter weg“. Stärker als die Tasten, weil man es seltener sagt. */
 const VOICE_ZOOM = 1.6;
+/** „runter“, „nach links“: so viel des Sichtfensters, wie im Vergleich. */
+const VOICE_PAN = 0.6;
 
 /** „heise.de Handy“ spricht man „heise Handy“. */
 const withoutDomain = (title: string) => title.replace(/\b([a-z0-9-]+)\.[a-z]{2,6}\b/gi, "$1");
 
 const phrases = (...words: (string | null | undefined)[]) => [...new Set(words.filter((w): w is string => Boolean(w)).map(normalize).filter(Boolean))];
 
-export function useCanvasVoice(engine: Engine | null, state: CanvasState | null, editing: AnnotationEditing, contents: Contents) {
+/** Die Gruppe, deren Fläche der Mitte des Fensters am nächsten liegt, etwa in der Übersicht, wo alles zu sehen ist. */
+function nearestGroup(engine: Engine, state: CanvasState): string | null {
+  const cam = engine.camera();
+  const vp = engine.viewport();
+  const c = { x: cam.x + vp.w / cam.z / 2, y: cam.y + vp.h / cam.z / 2 };
+  let best: { id: string; d: number } | null = null;
+  for (const group of state.groups) {
+    const r = groupArea(group, state.items);
+    if (!r) continue;
+    const d = Math.hypot(Math.max(r.x - c.x, 0, c.x - (r.x + r.w)), Math.max(r.y - c.y, 0, c.y - (r.y + r.h)));
+    if (!best || d < best.d) best = { id: group.id, d };
+  }
+  return best?.id ?? null;
+}
+
+export function useCanvasVoice(engine: Engine | null, state: CanvasState | null, editing: AnnotationEditing, contents: Contents, compare: Compare, arrange: Arrange) {
   const { t, phrases: say, lang } = useT();
   const commands: VoiceCommand[] = [];
 
-  if (engine && state) {
+  // Im Vergleich der Fassungen gelten nur dessen Befehle (VersionCompare).
+  if (engine && state && !compare.item) {
     const zoomBy = (factor: number) => {
       const cam = engine.camera();
       const vp = engine.viewport();
@@ -32,6 +54,10 @@ export function useCanvasVoice(engine: Engine | null, state: CanvasState | null,
       const cx = cam.x + vp.w / cam.z / 2;
       const cy = cam.y + vp.h / cam.z / 2;
       void engine.fit({ x: cx - w / 2, y: cy - h / 2, w, h }, { padding: 0, maxZoom: 8 });
+    };
+    const panView = (dx: number, dy: number) => {
+      const vp = engine.viewport();
+      void engine.flyTo(panBy(engine.camera(), -dx * vp.w * VOICE_PAN, -dy * vp.h * VOICE_PAN));
     };
     commands.push(
       {
@@ -60,6 +86,10 @@ export function useCanvasVoice(engine: Engine | null, state: CanvasState | null,
       },
       { id: "naeher", label: t("cmd.zoomIn.label"), meaning: "Zoom in a step.", phrases: say("cmd.zoomIn.phrases"), run: () => zoomBy(VOICE_ZOOM) },
       { id: "weiter-weg", label: t("cmd.zoomOut.label"), meaning: "Zoom out a step.", phrases: say("cmd.zoomOut.phrases"), run: () => zoomBy(1 / VOICE_ZOOM) },
+      { id: "runter", label: t("cmd.compareDown.label"), meaning: "Move the view down a step (scroll down).", phrases: say("cmd.compareDown.phrases"), run: () => panView(0, 1) },
+      { id: "hoch", label: t("cmd.compareUp.label"), meaning: "Move the view up a step (scroll up).", phrases: say("cmd.compareUp.phrases"), run: () => panView(0, -1) },
+      { id: "nach-links", label: t("cmd.panLeft.label"), meaning: "Move the view to the left a step.", phrases: say("cmd.panLeft.phrases"), run: () => panView(-1, 0) },
+      { id: "nach-rechts", label: t("cmd.panRight.label"), meaning: "Move the view to the right a step.", phrases: say("cmd.panRight.phrases"), run: () => panView(1, 0) },
     );
 
     // Jedes Bild über seinen Namen: „zeig mir heise Handy“. Namen sind je Fläche eindeutig (canvas-store).
@@ -82,6 +112,30 @@ export function useCanvasVoice(engine: Engine | null, state: CanvasState | null,
           run: () => contents.showNotes(item.id),
         });
     });
+    // Fassungen: je Bild mit früheren Fassungen über seinen Namen, ohne Namen das Bild im Blick.
+    const versioned = state.items.filter((item) => item.versions?.length);
+    state.items.forEach((item, i) => {
+      if (!item.versions?.length) return;
+      const name = imageName(item.title);
+      commands.push({
+        id: `fassungen-bild-${i}`,
+        label: t("cmd.compareImage.label", { name }),
+        meaning: `Compare the versions of the image „${item.title}“ side by side: an earlier one left, the current one right.`,
+        phrases: say("cmd.compareImage.phrases", { name, short: withoutDomain(name) }),
+        run: () => compare.open(item.id),
+      });
+    });
+    if (versioned.length)
+      commands.push({
+        id: "fassungen-vergleichen",
+        label: t("cmd.compare.label"),
+        meaning: "Compare the versions of the image in view (or the only image with earlier versions) side by side.",
+        phrases: say("cmd.compare.phrases"),
+        run: () => {
+          const seen = itemInView(engine, state.items);
+          compare.open((versioned.find((item) => item.id === seen) ?? versioned[0]!).id);
+        },
+      });
     if (contents.notesOpen && contents.notesFor)
       commands.push({ id: "alle-anmerkungen", label: t("cmd.allNotes.label"), meaning: "Show all annotations in the list again, not only those of one image.", phrases: say("cmd.allNotes.phrases"), run: () => contents.showNotes(null) });
 
@@ -96,6 +150,39 @@ export function useCanvasVoice(engine: Engine | null, state: CanvasState | null,
         run: () => showGroup(engine, group, state.items),
       });
     });
+
+    // Gruppe umbenennen: über ihren Namen, oder ohne Namen die gewählte, die im Blick oder die einzige.
+    // Danach steht das Feld offen; Gesagtes ersetzt den Namen, „sichern“ übernimmt (GroupNameEditor).
+    if (!arrange.renaming) {
+      const rename = (groupId: string) => {
+        const group = state.groups.find((g) => g.id === groupId);
+        if (group) showGroup(engine, group, state.items);
+        arrange.startRename(groupId);
+      };
+      state.groups.forEach((group, k) => {
+        const name = group.title.toLowerCase();
+        commands.push({
+          id: `gruppe-umbenennen-${k}`,
+          label: t("cmd.renameGroup.label", { name: group.title }),
+          meaning: `Rename the group „${group.title}“: open its name field.`,
+          phrases: say("cmd.renameGroup.phrases", { name }),
+          run: () => rename(group.id),
+        });
+      });
+      if (state.groups.length)
+        commands.push({
+          id: "gruppe-umbenennen",
+          label: t("cmd.renameGroupHere.label"),
+          meaning: "Rename the selected group, or the group in view (nearest to the middle): open its name field.",
+          phrases: say("cmd.renameGroupHere.phrases"),
+          run: () => {
+            const chosen = arrange.selection?.kind === "group" ? arrange.selection.id : null;
+            const seen = itemInView(engine, state.items);
+            const target = chosen ?? state.groups.find((g) => seen && g.itemIds.includes(seen))?.id ?? nearestGroup(engine, state);
+            if (target) rename(target);
+          },
+        });
+    }
 
     const several = state.items.length > 1;
     state.items.forEach((item, i) =>

@@ -18,11 +18,16 @@ export function createRecorder({ onLevel, keepWarmMs = 120_000 }: { onLevel?: (l
   let startedAt = 0;
   let audioContext: AudioContext | null = null;
   let levelTimer: ReturnType<typeof setInterval> | undefined;
+  let levelNodes: AudioNode[] = [];
   let coolTimer: ReturnType<typeof setTimeout> | undefined;
 
+  // Quelle und Analyser je Aufnahme wieder lösen: verbunden liefen sie mit dem warmen Mikrofon weiter und
+  // häuften sich mit jeder Aufnahme an.
   const stopLevel = () => {
     clearInterval(levelTimer);
     levelTimer = undefined;
+    for (const n of levelNodes) n.disconnect();
+    levelNodes = [];
   };
 
   function release() {
@@ -31,6 +36,8 @@ export function createRecorder({ onLevel, keepWarmMs = 120_000 }: { onLevel?: (l
     stream?.getTracks().forEach((t) => t.stop());
     stream = null;
     recorder = null;
+    // Ohne Mikrofon braucht es keinen Audio-Thread; watchLevel weckt den Kontext beim nächsten Sprechen.
+    if (audioContext?.state === "running") void audioContext.suspend();
   }
 
   document.addEventListener("visibilitychange", () => {
@@ -56,9 +63,12 @@ export function createRecorder({ onLevel, keepWarmMs = 120_000 }: { onLevel?: (l
   function watchLevel(s: MediaStream) {
     audioContext ??= new AudioContext();
     if (audioContext.state === "suspended") void audioContext.resume();
+    stopLevel();
     const analyser = audioContext.createAnalyser();
     analyser.fftSize = 512;
-    audioContext.createMediaStreamSource(s).connect(analyser);
+    const source = audioContext.createMediaStreamSource(s);
+    source.connect(analyser);
+    levelNodes = [source, analyser];
     const data = new Uint8Array(analyser.fftSize);
     levelTimer = setInterval(() => {
       analyser.getByteTimeDomainData(data);

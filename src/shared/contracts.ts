@@ -72,6 +72,8 @@ export type ImageVersion = {
   imageHeight: number;
   scale: number;
   replacedAt: string;
+  /** Abgeleitet, nicht gespeichert: Kacheln für den Vergleich; fehlt, wenn die Datei nicht mehr da ist. */
+  tiles?: TileManifest;
 };
 
 /** Gruppe von Bildern mit Namen, etwa eine Figma-Section. Ihre Fläche ergibt sich aus den Bildern (shared/groups.ts). */
@@ -85,6 +87,8 @@ export type Layout = { items: { id: string; x: number; y: number }[]; groups: Gr
 /** Was beim Löschen von Bildern wegfiel, damit „Rückgängig“ es zurückbringt: Bilder, ihre Anmerkungen, Gruppen vorher,
  * dazu die Reihenfolge aller Bilder (sie bestimmt, was oben liegt und wie das Inhaltsverzeichnis sortiert ist). */
 export type RemovedItems = { items: ImageItem[]; annotations: Annotation[]; groups: Group[]; order?: string[] };
+/** Gelöschte frühere Fassungen eines Bildes (Index in `versions` vor dem Löschen) samt ihren Anmerkungen, für „Rückgängig“. */
+export type RemovedVersions = { itemId: string; versions: { index: number; version: ImageVersion }[]; annotations: Annotation[] };
 
 export type AnnotationSource = "voice" | "text" | "claude";
 
@@ -122,6 +126,9 @@ export const REPLY_MAX_CHARS = 600;
 /** Bilder (id, Nummer, Titel) oder Gruppen (id, Titel) entfernen; eine Gruppe nimmt ihre Bilder mit. */
 export type RemoveRequest = { images?: string[]; groups?: string[] };
 export type RemoveResponse = { canvas: CanvasState; removed: string[]; groups: string[] };
+/** `versions` zählt ab 1, die älteste frühere Fassung zuerst (wie sideview_get sie aufzählt). */
+export type RemoveVersionsRequest = { image: string; versions: number[] };
+export type RemoveVersionsResponse = { canvas: CanvasState; removed: RemovedVersions };
 
 export type CanvasState = {
   name: string;

@@ -130,6 +130,7 @@ export function createEngine(host: HTMLElement, { insetTop = 0, insetBottom = 0 
   resize();
 
   canvas.addEventListener("webglcontextlost", (e) => {
+    if (disposed) return; // gewollt freigegeben, siehe dispose()
     e.preventDefault();
     console.warn("WebGL-Kontext verloren");
   });
@@ -219,6 +220,9 @@ export function createEngine(host: HTMLElement, { insetTop = 0, insetBottom = 0 
       listeners.clear();
       tiles.dispose();
       renderer.dispose();
+      // dispose() gibt den WebGL-Kontext nicht frei, er bliebe bis zur Speicherbereinigung offen. Jeder geöffnete
+      // Vergleich baut zwei Engines; ab etwa 16 offenen Kontexten verwirft Chromium den ältesten, womöglich den der Fläche.
+      renderer.forceContextLoss();
       canvas.remove();
     },
   };

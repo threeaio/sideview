@@ -188,3 +188,62 @@ test("Englisch: „save“ am Ende eines Diktats hängt an und sichert", () => {
   // Eigenes Schlüsselwort gilt in beiden Sprachen.
   assert.deepEqual(routeInCode("Too tight, stash.", c, ["stash"]), saved("Too tight"));
 });
+
+test("Fassungsvergleich: „weiter zurück“ blättert, schließt nicht (23.11.)", async () => {
+  const { de } = await import("./i18n/de.ts");
+  const { en } = await import("./i18n/en.ts");
+  for (const [dict, cases] of [
+    [de, { "weiter zurück": "aeltere-fassung", "zurück": "aeltere-fassung", "noch weiter zurück": "aeltere-fassung", "weiter vor": "neuere-fassung", "nächste fassung": "neuere-fassung", "zurück zum canvas": "vergleich-schliessen", "schließen": "vergleich-schliessen", "weiter runter": "vergleich-runter", "nach oben": "vergleich-hoch", "weiter weg": "vergleich-weiter-weg", "näher": "vergleich-naeher" }],
+    [en, { "further back": "aeltere-fassung", "back": "aeltere-fassung", "back to the canvas": "vergleich-schliessen", "scroll down": "vergleich-runter", "up": "vergleich-hoch" }],
+  ] as const) {
+    const d = dict as Record<string, unknown>;
+    const p = (key: string) => d[`${key}.phrases`] as string[];
+    const compare = [
+      opt("vergleich-schliessen", p("cmd.compareClose")),
+      opt("aeltere-fassung", p("cmd.compareOlder")),
+      opt("neuere-fassung", p("cmd.compareNewer")),
+      opt("vergleich-anfang", p("cmd.overview")),
+      opt("vergleich-naeher", p("cmd.zoomIn")),
+      opt("vergleich-weiter-weg", p("cmd.zoomOut")),
+      opt("vergleich-runter", p("cmd.compareDown")),
+      opt("vergleich-hoch", p("cmd.compareUp")),
+    ];
+    for (const [said, id] of Object.entries(cases)) {
+      assert.deepEqual(routeInCode(said, ctx({ options: compare })), { kind: "command", id, stage: "code" }, said);
+    }
+  }
+});
+
+test("Canvas und Vergleich: jede Phrase führt zu ihrem eigenen Befehl, auch Schwenken, Fassung per Nummer, Umbenennen (24.11.)", async () => {
+  const { de } = await import("./i18n/de.ts");
+  const { en } = await import("./i18n/en.ts");
+  for (const [lang, dict] of [["de", de], ["en", en]] as const) {
+    const d = dict as Record<string, unknown>;
+    const fill = (key: string, vars: Record<string, string>) => (d[`${key}.phrases`] as string[]).map((p) => normalize(p.replace(/\{(\w+)\}/g, (_, k: string) => vars[k] ?? "")));
+    const p = (key: string) => fill(key, {});
+    const numbered = (id: string, key: string, n: number) => opt(`${id}-${n}`, numberWords(n, lang).flatMap((w) => fill(key, { w })));
+    const always = ["selectTool", "markTool", "undo", "redo", "finish", "canvases", "newCanvas", "settings"].map((k) => opt(k, p(`cmd.${k}`)));
+    const canvas = [
+      ...always,
+      ...["overview", "contents", "notes", "zoomIn", "zoomOut", "compare", "next", "previous", "groupImages", "ungroup"].map((k) => opt(k, p(`cmd.${k}`))),
+      opt("runter", p("cmd.compareDown")),
+      opt("hoch", p("cmd.compareUp")),
+      opt("nach-links", p("cmd.panLeft")),
+      opt("nach-rechts", p("cmd.panRight")),
+      opt("gruppe-umbenennen", p("cmd.renameGroupHere")),
+      opt("gruppe-umbenennen-0", fill("cmd.renameGroup", { name: "mostly air" })),
+      opt("gruppe-0", fill("cmd.group", { name: "mostly air" })),
+      ...[1, 2, 3].map((n) => numbered("anmerkung", "cmd.annotation", n)),
+    ];
+    const compare = [
+      ...always,
+      ...["compareClose", "compareOlder", "compareNewer", "compareDelete", "compareDown", "compareUp", "overview", "zoomIn", "zoomOut"].map((k) => opt(k, p(`cmd.${k}`))),
+      ...[1, 2].map((n) => numbered("fassung", "cmd.compareVersion", n)),
+      ...[1, 2, 3].map((n) => numbered("anmerkung", "cmd.annotation", n)),
+      opt("bereich-0", ["header", "kopf"]),
+    ];
+    for (const options of [canvas, compare])
+      for (const o of options)
+        for (const said of o.phrases) assert.deepEqual(routeInCode(said, ctx({ options })), { kind: "command", id: o.id, stage: "code" }, `${lang}: „${said}“`);
+  }
+});

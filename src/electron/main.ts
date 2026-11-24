@@ -16,10 +16,10 @@ import { EXTENSION_CHANNEL, type MainExtension, type MainExtensionContext, type 
 import { registerOrigin } from "../shared/origins.ts";
 import { loadExtensions } from "../main/extensions.ts";
 import { cropAnnotation, cropRect, previewImage } from "../mcp/crops.ts";
-import type { Annotation, CanvasState, Layout, Rect, RemovedItems } from "../shared/contracts.ts";
+import type { Annotation, CanvasState, Layout, Rect, RemovedItems, RemovedVersions } from "../shared/contracts.ts";
 import { reviewResult } from "../main/api.ts";
 import { startApp } from "../main/serve.ts";
-import { ensureTiles, tileFile } from "../main/tiles.ts";
+import { ensureTiles, pruneTiles, tileFile } from "../main/tiles.ts";
 import { createSettingsStore } from "../main/settings-store.ts";
 import { createVoice, type Voice } from "../main/voice/voice.ts";
 import { resolveLanguage, saveWords, type Language, type Settings } from "../shared/settings.ts";
@@ -137,8 +137,10 @@ function bringToFront() {
 async function withTiles(state: CanvasState): Promise<CanvasState> {
   const items = await Promise.all(
     state.items.map(async (item) => {
+      // Frühere Fassungen brauchen Kacheln erst im Vergleich; meist liegen sie schon von früher vor.
+      const versions = item.versions && (await Promise.all(item.versions.map(async (v) => ({ ...v, ...(await ensureTiles(v.path).then((tiles) => ({ tiles })).catch(() => ({}))) }))));
       try {
-        return { ...item, tiles: await ensureTiles(item.path) };
+        return { ...item, ...(versions ? { versions } : {}), tiles: await ensureTiles(item.path) };
       } catch (e) {
         log("tiles_error", { canvas: state.name, item: item.id, detail: String(e) });
         return item;
@@ -265,6 +267,14 @@ app.whenReady().then(async () => {
           decision: () => ({ apiKey: decisionKey().key, ...settings.get().decision }),
         });
 
+  // Alte Kacheln aufräumen, still im Hintergrund: nur was zu keinem Bild auf einem Canvas mehr gehört.
+  void (async () => {
+    const states = await Promise.all((await core.store.list()).map((c) => core.store.get(c.name)));
+    const images = states.flatMap((s) => (s ? s.items.flatMap((it) => [it.path, ...(it.versions ?? []).map((v) => v.path)]) : []));
+    const { removed, bytes } = await pruneTiles(images);
+    log("tiles_pruned", { removed, mb: Math.round(bytes / 1048576) });
+  })().catch((e: unknown) => log("tiles_prune_failed", { message: String(e) }));
+
   // Kacheln nur aus data/tiles: canvas-tile://<schlüssel>/<stufe>/<spalte>_<zeile>.png
   protocol.handle(TILE_SCHEME, async (request) => {
     const url = new URL(request.url);
@@ -333,6 +343,17 @@ app.whenReady().then(async () => {
   ipcMain.handle(INVOKE.restoreItems, async (_e, canvas: string, removed: RemovedItems) => {
     await core.store.restoreItems(canvas, removed);
     core.log("items_restored", { canvas, items: removed.items.length, groups: removed.groups.length });
+    await changed(canvas);
+  });
+  ipcMain.handle(INVOKE.removeVersions, async (_e, canvas: string, itemId: string, indices: number[]) => {
+    const { removed } = await core.store.removeVersions(canvas, itemId, indices);
+    core.log("versions_removed", { canvas, item: itemId, versions: removed.versions.length, annotations: removed.annotations.length });
+    await changed(canvas);
+    return removed;
+  });
+  ipcMain.handle(INVOKE.restoreVersions, async (_e, canvas: string, removed: RemovedVersions) => {
+    await core.store.restoreVersions(canvas, removed);
+    core.log("versions_restored", { canvas, item: removed.itemId, versions: removed.versions.length });
     await changed(canvas);
   });
   ipcMain.handle(INVOKE.addAnnotation, async (_e, canvas: string, input: NewAnnotationInput) => {

@@ -3,7 +3,7 @@
 
 import { timingSafeEqual } from "node:crypto";
 import http from "node:http";
-import type { ApiError, RemoveAnnotationsRequest, ResolveRequest, RemoveRequest, CanvasState, OpenRequest, ReviewRequest, ReviewResult } from "../shared/contracts.ts";
+import type { ApiError, RemoveAnnotationsRequest, ResolveRequest, RemoveRequest, RemoveVersionsRequest, CanvasState, OpenRequest, ReviewRequest, ReviewResult } from "../shared/contracts.ts";
 import type { CanvasStore } from "./canvas-store.ts";
 import { Failure, HTTP_STATUS } from "./failure.ts";
 import type { Reviews } from "./reviews.ts";
@@ -87,6 +87,15 @@ export function createApiServer(deps: ApiDeps): http.Server {
           log("annotations_resolved", { canvas: state.name, resolved });
           deps.onChange?.(state);
           return send(200, { canvas: state, resolved });
+        }
+        if (id && action === "remove-versions" && req.method === "POST") {
+          const body = (await readJson(req)) as RemoveVersionsRequest;
+          const versions = Array.isArray(body.versions) ? body.versions.map(Number) : [];
+          if (!body.image || versions.length === 0) throw new Failure("bad_request", "image or versions missing");
+          const { state, removed } = await store.removeVersions(id, String(body.image), versions.map((n) => n - 1));
+          log("versions_removed", { canvas: state.name, item: removed.itemId, versions: removed.versions.length, annotations: removed.annotations.length });
+          deps.onChange?.(state);
+          return send(200, { canvas: state, removed });
         }
         if (id && action === "remove" && req.method === "POST") {
           const body = (await readJson(req)) as RemoveRequest;

@@ -1,6 +1,6 @@
 // Transport: einzige Stelle, die window.canvasBridge anfasst. Services rufen nur diese Funktionen.
 
-import type { Annotation, CanvasState, CanvasSummary, RemovedItems } from "../../shared/contracts.ts";
+import type { Annotation, CanvasState, CanvasSummary, RemovedItems, RemovedVersions } from "../../shared/contracts.ts";
 import type { Settings } from "../../shared/settings.ts";
 import type { UsageSummary } from "../../shared/usage.ts";
 import type { VoiceResult } from "../../shared/voice.ts";
@@ -25,6 +25,8 @@ export const bridge: CanvasBridge = {
   applyLayout: (canvas, layout) => raw().invoke(INVOKE.applyLayout, canvas, layout) as Promise<void>,
   removeItems: (canvas, ids) => raw().invoke(INVOKE.removeItems, canvas, ids) as Promise<RemovedItems>,
   restoreItems: (canvas, removed) => raw().invoke(INVOKE.restoreItems, canvas, removed) as Promise<void>,
+  removeVersions: (canvas, itemId, indices) => raw().invoke(INVOKE.removeVersions, canvas, itemId, indices) as Promise<RemovedVersions>,
+  restoreVersions: (canvas, removed) => raw().invoke(INVOKE.restoreVersions, canvas, removed) as Promise<void>,
   addAnnotation: (canvas, input) => raw().invoke(INVOKE.addAnnotation, canvas, input) as Promise<Annotation>,
   updateAnnotation: (canvas, id, patch) => raw().invoke(INVOKE.updateAnnotation, canvas, id, patch) as Promise<Annotation>,
   removeAnnotation: (canvas, id) => raw().invoke(INVOKE.removeAnnotation, canvas, id) as Promise<void>,

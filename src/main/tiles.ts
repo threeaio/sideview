@@ -48,6 +48,40 @@ async function load(key: string, imagePath: string): Promise<TileManifest> {
   return JSON.parse(await fs.readFile(path.join(dir, "manifest.json"), "utf8")) as TileManifest;
 }
 
+/**
+ * Kacheln löschen, die zu keinem Bild mehr gehören (entferntes Bild, gelöschtes Canvas, geänderte Datei). Bis
+ * 24.11. blieben sie liegen, der Ordner wuchs ohne Grenze (gemessen: 712 MB von 2,8 GB verwaist). Ordner jünger als
+ * `graceMs` bleiben, sie können gerade entstehen. Fehlt eine Kachel später doch, entsteht sie neu (rund eine Sekunde je Bild).
+ */
+export async function pruneTiles(imagePaths: Iterable<string>, { dir = tilesDir(), graceMs = 86_400_000, now = Date.now() } = {}): Promise<{ removed: number; bytes: number }> {
+  const keep = new Set<string>();
+  for (const p of new Set(imagePaths)) await tileKeyFor(p).then((k) => keep.add(k), () => {});
+  const names = await fs.readdir(dir).catch(() => [] as string[]);
+  let removed = 0;
+  let bytes = 0;
+  for (const name of names) {
+    if (!/^[0-9a-f]{16}$/.test(name) || keep.has(name)) continue;
+    const full = path.join(dir, name);
+    const stat = await fs.stat(full).catch(() => null);
+    if (!stat?.isDirectory() || now - stat.mtimeMs < graceMs) continue;
+    bytes += await sizeOf(full);
+    await fs.rm(full, { recursive: true, force: true });
+    cache.delete(name);
+    removed++;
+  }
+  return { removed, bytes };
+}
+
+async function sizeOf(p: string): Promise<number> {
+  const entries = await fs.readdir(p, { withFileTypes: true }).catch(() => []);
+  let sum = 0;
+  for (const e of entries) {
+    const full = path.join(p, e.name);
+    sum += e.isDirectory() ? await sizeOf(full) : ((await fs.stat(full).catch(() => null))?.size ?? 0);
+  }
+  return sum;
+}
+
 /** Datei einer Kachel, nur innerhalb von data/tiles/<schlüssel>/image_files. Sonst null. */
 export function tileFile(key: string, rest: string): string | null {
   if (!/^[0-9a-f]{16}$/.test(key) || !/^\d+\/\d+_\d+\.png$/.test(rest)) return null;

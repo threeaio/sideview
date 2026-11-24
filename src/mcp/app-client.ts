@@ -10,6 +10,7 @@ import type {
   ApiErrorCode,
   RemoveAnnotationsResponse,
   RemoveResponse,
+  RemoveVersionsResponse,
   ResolveResponse,
   CanvasState,
   CanvasSummary,
@@ -72,6 +73,7 @@ export function createAppClient({ baseUrl = `http://127.0.0.1:${config.port}`, l
     removeAnnotations: (name: string, refs: string[]) => call<RemoveAnnotationsResponse>("POST", `/api/canvases/${enc(name)}/remove-annotations`, { refs }),
     resolveAnnotations: (name: string, annotations: { ref: string; reply?: string }[]) => call<ResolveResponse>("POST", `/api/canvases/${enc(name)}/resolve-annotations`, { annotations }),
     remove: (name: string, refs: { images?: string[]; groups?: string[] }) => call<RemoveResponse>("POST", `/api/canvases/${enc(name)}/remove`, refs),
+    removeVersions: (name: string, image: string, versions: number[]) => call<RemoveVersionsResponse>("POST", `/api/canvases/${enc(name)}/remove-versions`, { image, versions }),
     startReview: (name: string, prompt: string | undefined, toolUseId: string | undefined) =>
       call<{ reviewId: string }>("POST", `/api/canvases/${enc(name)}/reviews`, { prompt, toolUseId }).then((r) => r.reviewId),
     waitReview: (reviewId: string, waitMs: number, signal?: AbortSignal) =>

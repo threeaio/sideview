@@ -15,7 +15,7 @@ import { useT, type Translate } from "../../shared/i18n.tsx";
 const THUMB = { w: 88, h: 66 };
 
 /** „heute 18:04“, sonst „21.11. 18:04“; englisch „today 6:04 PM“, sonst „Nov 21 6:04 PM“. */
-function doneTime(iso: string, { t, lang, locale }: Translate): string {
+export function doneTime(iso: string, { t, lang, locale }: Translate): string {
   const d = new Date(iso);
   const time = d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
   const today = new Date().toDateString() === d.toDateString();

@@ -3,7 +3,7 @@
 
 const { contextBridge, ipcRenderer, webUtils } = require("electron");
 
-const INVOKE = ["canvas:list", "canvas:get", "canvas:current", "canvas:add-images", "canvas:paste-image", "edit:native-paste", "canvas:apply-layout", "canvas:remove-items", "canvas:restore-items", "annotation:add", "annotation:update", "annotation:remove", "annotation:restore", "review:finish", "review:open-list", "voice:utterance", "voice:log", "settings:get", "settings:set", "usage:get", "voice:status", "settings:set-key", "canvas:open", "canvas:create", "canvas:thumbnail"];
+const INVOKE = ["canvas:list", "canvas:get", "canvas:current", "canvas:add-images", "canvas:paste-image", "edit:native-paste", "canvas:apply-layout", "canvas:remove-items", "canvas:restore-items", "canvas:remove-versions", "canvas:restore-versions", "annotation:add", "annotation:update", "annotation:remove", "annotation:restore", "review:finish", "review:open-list", "voice:utterance", "voice:log", "settings:get", "settings:set", "usage:get", "voice:status", "settings:set-key", "canvas:open", "canvas:create", "canvas:thumbnail"];
 const EVENTS = ["canvas:opened", "canvas:changed", "reviews:changed", "view:stage", "view:settings", "edit:undo", "edit:redo", "edit:paste", "view:canvases", "view:new-canvas"];
 
 contextBridge.exposeInMainWorld("canvasBridge", {

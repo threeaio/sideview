@@ -9,7 +9,9 @@ import { dropLabel } from "./image-drop.ts";
 import { SurfaceOverlay } from "./SurfaceOverlay.tsx";
 import { ToolBar } from "./ToolBar.tsx";
 import { UndoToast } from "./UndoToast.tsx";
+import { VersionCompare } from "./VersionCompare.tsx";
 import { VersionStacks } from "./VersionStacks.tsx";
+import { useCompare } from "./useCompare.ts";
 import { useArrange } from "./useArrange.ts";
 import { useHistory } from "./useHistory.ts";
 import { useTool } from "./useTool.ts";
@@ -44,7 +46,8 @@ export function CanvasView({ state: saved, show, contents, stage, reviewing, emp
   useEffect(() => {
     if (editing.selected) clear();
   }, [editing.selected, clear]);
-  useCanvasVoice(engine, state, editing, contents);
+  const compare = useCompare(state, history);
+  useCanvasVoice(engine, state, editing, contents, compare, arrange);
   const { attach, attachSelection } = contents;
   useEffect(() => attach(engine), [attach, engine]);
   // Die Liste der Anmerkungen in der Kopfzeile zeigt und setzt dieselbe Auswahl.
@@ -56,7 +59,7 @@ export function CanvasView({ state: saved, show, contents, stage, reviewing, emp
     () => attachSelection({ selected, select: (id) => latest.current.select(id), edit: (id) => latest.current.edit(id) }),
     [attachSelection, selected],
   );
-  const stepper = useImageStepper(engine, state);
+  const stepper = useImageStepper(engine, state, Boolean(compare.item));
   const drop = useImageDrop(host, engine, state);
   useImagePaste(host, engine, state);
 
@@ -64,14 +67,15 @@ export function CanvasView({ state: saved, show, contents, stage, reviewing, emp
     <div className="surface" ref={host} data-stage={stage} data-tool={tool.tool}>
       {/* Unter der Leinwand: Gruppenflächen. Gesetzt wie die HTML-Ebene (useSurface setzt alles unter .surface). */}
       <div className="surface__underlay">{state && <GroupLayer state={state} areas={arrange.areas} target={arrange.dropTarget} slot={arrange.slot} selected={arrange.selection?.kind === "group" ? arrange.selection.id : null} renaming={arrange.renaming} resizing={arrange.resizing} />}
-        {state && <VersionStacks state={state} hidden={arrange.covered} />}
+        {state && <VersionStacks state={state} hidden={arrange.covered} selected={arrange.selection?.kind === "items" ? arrange.selection.ids : []} />}
       </div>
       <div className="surface__gl" ref={glHost} />
       <div className="surface__overlay" ref={overlay}>
-        {state && <SurfaceOverlay state={state} editing={editing} engine={engine} arrange={arrange} onNotes={contents.showNotes} />}
+        {state && <SurfaceOverlay state={state} editing={editing} engine={engine} arrange={arrange} onNotes={contents.showNotes} onCompare={compare.open} />}
       </div>
       <UndoToast undo={history.toast ? { label: history.toast.label, run: () => void history.undo() } : null} />
-      {state && <ToolBar tool={tool} arrange={arrange} state={state} history={history} stepper={stepper} />}
+      {state && !compare.item && <ToolBar tool={tool} arrange={arrange} state={state} history={history} stepper={stepper} />}
+      {state && compare.item && <VersionCompare key={compare.item.id} item={compare.item} left={compare.left} compare={compare} annotations={state.annotations} />}
       {!state && empty}
       {state && state.items.length === 0 && (
         <div className="surface__empty-canvas">

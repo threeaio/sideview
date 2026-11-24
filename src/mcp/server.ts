@@ -107,7 +107,7 @@ const INSTRUCTIONS =
   "Give every image you place a small `meta` object so that you or another thread can find and match it later. What goes in is up to you, per project, e.g. version, project, file or commit, variant. Keep it short, no credentials and no short-lived image URLs. " +
   "From Figma the user usually wants single frames: one image per frame, the frame name as title. If they want something else or it is unclear, make sure every image on the canvas can be recognised by its name. " +
   "If a Figma link points to a section or to several frames, they go on the canvas as a group: one image per frame, the group named like the section (sideview_open with `group`). " +
-  "Flow: sideview_open places images and shows the canvas. sideview_review waits until the user says or clicks \"Done\" in the canvas (\"Fertig\" in the German UI) and returns their annotations with crops. When you have implemented an annotation, mark it as resolved with sideview_resolve_annotations and add one sentence on what you did; it stays on the canvas with a check mark. If the user wants an annotation gone, remove it with sideview_remove_annotations. Remove images or whole groups with sideview_remove when the user wants it. " +
+  "Flow: sideview_open places images and shows the canvas. sideview_review waits until the user says or clicks \"Done\" in the canvas (\"Fertig\" in the German UI) and returns their annotations with crops. When you have implemented an annotation, mark it as resolved with sideview_resolve_annotations and add one sentence on what you did; it stays on the canvas with a check mark. If the user wants an annotation gone, remove it with sideview_remove_annotations. Remove images or whole groups with sideview_remove when the user wants it. Earlier versions of an image (its stack) go with sideview_remove_versions. " +
   "If several canvases match the user's request, ask which one is meant (sideview_list).";
 
 const server = new McpServer({ name: SLUG, version: "0.1.0" }, { instructions: [INSTRUCTIONS, ...extensionInstructions].join("\n\n") });
@@ -373,6 +373,33 @@ server.registerTool(
       const { canvas: state, removed, groups: gone } = await app.remove(slugify(canvas), { images: images?.map(String), groups });
       log("removed", { canvas: state.name, removed: removed.length, groups: gone.length });
       const what = [gone.length ? `Group${gone.length === 1 ? "" : "s"} ${gone.map((g) => `"${g}"`).join(", ")}` : null, `${removed.length === 1 ? "1 image" : `${removed.length} images`}`].filter(Boolean).join(" with ");
+      return { content: [{ type: "text" as const, text: `${what} removed. Now:\n${describeCanvas(state)}` }] };
+    } catch (e) {
+      return failure(e);
+    }
+  },
+);
+
+server.registerTool(
+  "sideview_remove_versions",
+  {
+    title: "Remove earlier versions of an image",
+    description:
+      "Removes earlier versions of one image (the stack behind it), together with the annotations made on them. Only when the user wants it. " +
+      "The image by its number, id or title from sideview_get; versions by their number in sideview_get's list of earlier versions (1 = oldest). " +
+      "The current version stays. If anything is unknown, nothing is removed. The image files stay on disk. Tell the user what you removed.",
+    inputSchema: {
+      canvas: z.string().describe("Name of the canvas"),
+      image: z.union([z.string(), z.number()]).describe("Number, id or title of the image"),
+      versions: z.array(z.number().int().min(1)).min(1).describe("Numbers of the earlier versions, 1 = oldest"),
+    },
+  },
+  async ({ canvas, image, versions }) => {
+    try {
+      await app.ensureRunning();
+      const { canvas: state, removed } = await app.removeVersions(slugify(canvas), String(image), versions);
+      log("versions_removed", { canvas: state.name, versions: removed.versions.length, annotations: removed.annotations.length });
+      const what = `${removed.versions.length === 1 ? "1 earlier version" : `${removed.versions.length} earlier versions`}${removed.annotations.length ? ` with ${removed.annotations.length === 1 ? "1 annotation" : `${removed.annotations.length} annotations`}` : ""}`;
       return { content: [{ type: "text" as const, text: `${what} removed. Now:\n${describeCanvas(state)}` }] };
     } catch (e) {
       return failure(e);

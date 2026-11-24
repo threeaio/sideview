@@ -1,7 +1,7 @@
 // Brücke zwischen Oberfläche und Hauptprozess (Electron IPC): Kanalnamen und Typen an einer Stelle.
 // preload.cjs führt dieselben Namen als Freigabeliste; ipc.test.ts prüft, dass beide übereinstimmen.
 
-import type { Annotation, AnnotationDone, AnnotationSource, CanvasState, CanvasSummary, Layout, Rect, RemovedItems, ReviewStatus } from "./contracts.ts";
+import type { Annotation, AnnotationDone, AnnotationSource, CanvasState, CanvasSummary, Layout, Rect, RemovedItems, RemovedVersions, ReviewStatus } from "./contracts.ts";
 import type { Language, Settings } from "./settings.ts";
 import type { UsageSummary } from "./usage.ts";
 import type { VoiceRequest, VoiceResult } from "./voice.ts";
@@ -17,6 +17,8 @@ export const INVOKE = {
   applyLayout: "canvas:apply-layout",
   removeItems: "canvas:remove-items",
   restoreItems: "canvas:restore-items",
+  removeVersions: "canvas:remove-versions",
+  restoreVersions: "canvas:restore-versions",
   addAnnotation: "annotation:add",
   updateAnnotation: "annotation:update",
   removeAnnotation: "annotation:remove",
@@ -90,6 +92,9 @@ export interface CanvasBridge {
   /** Bilder samt Anmerkungen löschen; gibt zurück, was „Rückgängig“ braucht. */
   removeItems(canvas: string, ids: string[]): Promise<RemovedItems>;
   restoreItems(canvas: string, removed: RemovedItems): Promise<void>;
+  /** Frühere Fassungen eines Bildes löschen (Indizes in `versions`), samt ihren Anmerkungen; für „Rückgängig“. */
+  removeVersions(canvas: string, itemId: string, indices: number[]): Promise<RemovedVersions>;
+  restoreVersions(canvas: string, removed: RemovedVersions): Promise<void>;
   /** Dateipfad zu einer gezogenen Datei; leer, wenn die Datei keinen Pfad hat. */
   pathForFile(file: File): string;
   addAnnotation(canvas: string, input: NewAnnotationInput): Promise<Annotation>;
