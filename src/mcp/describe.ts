@@ -68,7 +68,7 @@ export function describeOpen(state: CanvasState, focus: string | null): string {
   return [
     `Canvas "${state.title}" (name: ${state.name}) is open${focus ? `, zoomed to "${focus}"` : ""}.`,
     ...state.items.map(describeItem),
-    'If the user is to work in the canvas: call sideview_review. The call waits until the user says or clicks "Done" ("Fertig" in the German UI).',
+    'If the user is to work in the canvas: call sideview_review. The call waits until the user says or clicks "Done" ("Fertig" in the German UI); tell the user in one short sentence that you are waiting for it.',
   ].join("\n");
 }
 
@@ -104,11 +104,13 @@ export function formatDuration(seconds: number): string {
  * Ergebnis von sideview_review. Bewusst nur Text: Claude soll zuerst kurz bestätigen, dass es angekommen ist,
  * und erst danach die Ausschnitte holen und gründlich nachdenken. So sieht der Nutzer sofort eine Antwort.
  */
-export function describeResult(result: ReviewResult, waitedSeconds?: number): string {
+export function describeResult(result: ReviewResult, waitedSeconds?: number, { now = false } = {}): string {
   const waited = waitedSeconds === undefined ? "" : ` after ${formatDuration(waitedSeconds)}`;
   const n = result.annotations.filter((a) => !a.done).length;
   return [
-    `The user said "Done"${waited} (canvas ${result.canvas}, ${result.finishedAt}).`,
+    now
+      ? `Taken from the canvas without "Done", as the user asked (canvas ${result.canvas}, ${result.finishedAt}).`
+      : `The user said "Done"${waited} (canvas ${result.canvas}, ${result.finishedAt}).`,
     describeAnnotations(result, { openOnly: true }),
     n > 0
       ? `Now first write the user one short sentence: that ${n === 1 ? "their annotation has arrived and that you are looking at it" : `their ${n} annotations have arrived and that you are looking at them`}. ` +

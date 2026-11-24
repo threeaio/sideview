@@ -71,6 +71,18 @@ test("sideview_review waits for \"Done\", returns the annotation as text and ask
   assert.equal(res.content.length, 1, "text only at first, Claude fetches the crops afterwards");
 });
 
+test("sideview_review with now: true takes the annotations without \"Done\" and ends a waiting review (24.11.)", async () => {
+  const waiting = call("sideview_review", { canvas: "lauf-20" });
+  for (let i = 0; i < 100 && app.reviews.open().length === 0; i++) await new Promise((r) => setTimeout(r, 50));
+  assert.equal(app.reviews.open().length, 1);
+  const res = await call("sideview_review", { canvas: "lauf-20", now: true });
+  const text = res.content[0]?.text ?? "";
+  assert.match(text, /^Taken from the canvas without "Done", as the user asked/);
+  assert.match(text, /"Logo zu klein"/);
+  assert.equal(app.reviews.open().length, 0, "the review in the app is finished too");
+  assert.match((await waiting).content[0]?.text ?? "", /The user said "Done"/);
+});
+
 test("sideview_get returns everything: images with position, origin and regions, annotations, image and crops; sideview_list the summary", async () => {
   const got = await call("sideview_get", { canvas: "Lauf 20", images: true });
   const text = got.content[0]?.text ?? "";

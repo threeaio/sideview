@@ -107,7 +107,9 @@ const INSTRUCTIONS =
   "Give every image you place a small `meta` object so that you or another thread can find and match it later. What goes in is up to you, per project, e.g. version, project, file or commit, variant. Keep it short, no credentials and no short-lived image URLs. " +
   "From Figma the user usually wants single frames: one image per frame, the frame name as title. If they want something else or it is unclear, make sure every image on the canvas can be recognised by its name. " +
   "If a Figma link points to a section or to several frames, they go on the canvas as a group: one image per frame, the group named like the section (sideview_open with `group`). " +
-  "Flow: sideview_open places images and shows the canvas. sideview_review waits until the user says or clicks \"Done\" in the canvas (\"Fertig\" in the German UI) and returns their annotations with crops. When you have implemented an annotation, mark it as resolved with sideview_resolve_annotations and add one sentence on what you did; it stays on the canvas with a check mark. If the user wants an annotation gone, remove it with sideview_remove_annotations. Remove images or whole groups with sideview_remove when the user wants it. Earlier versions of an image (its stack) go with sideview_remove_versions. " +
+  "Flow: sideview_open places images and shows the canvas. sideview_review waits until the user says or clicks \"Done\" in the canvas (\"Fertig\" in the German UI) and returns their annotations with crops. " +
+  "Before you call it, tell the user in one short sentence that you are now waiting for \"Done\" in the canvas and do nothing else until then; if they forget it, they can stop the wait (Esc in Claude Code) and tell you to look at the canvas. " +
+  "When the user tells you to look at the canvas (\"look at the canvas\", \"guck aufs Canvas\"), call sideview_review with `now: true`: it takes the annotations as they are, as if the user had said \"Done\". When you have implemented an annotation, mark it as resolved with sideview_resolve_annotations and add one sentence on what you did; it stays on the canvas with a check mark. If the user wants an annotation gone, remove it with sideview_remove_annotations. Remove images or whole groups with sideview_remove when the user wants it. Earlier versions of an image (its stack) go with sideview_remove_versions. " +
   "If several canvases match the user's request, ask which one is meant (sideview_list).";
 
 const server = new McpServer({ name: SLUG, version: "0.1.0" }, { instructions: [INSTRUCTIONS, ...extensionInstructions].join("\n\n") });
@@ -197,6 +199,8 @@ server.registerTool(
     title: "Review in the canvas",
     description:
       "Waits until the user says or clicks \"Done\" in the canvas (\"Fertig\" in the German UI) and returns their annotations as text, with region and rectangle. Can take a long time. " +
+      "Before calling it, tell the user in one short sentence that you are waiting for \"Done\" in the canvas and do nothing until then; they can stop the wait (Esc) and tell you to look at the canvas instead. " +
+      "With `now: true` it does not wait: it takes the annotations as they are, as if the user had said \"Done\". Use it when the user tells you to look at the canvas. " +
       "Optional `prompt`: a short question shown in the canvas. " +
       "If it returns that the canvas is still open (clients without progress notifications get this after 45 seconds), call sideview_review again with the same canvas; the review continues. " +
       "When the result arrives, first confirm to the user in one short sentence that it has arrived and that you are looking at it. " +
@@ -204,13 +208,22 @@ server.registerTool(
     inputSchema: {
       canvas: z.string().describe("Name of the canvas"),
       prompt: z.string().optional().describe("Short question shown in the canvas"),
+      now: z.boolean().optional().describe("Do not wait: take the annotations as they are now, as if the user had said Done"),
     },
   },
-  async ({ canvas, prompt }, extra) => {
+  async ({ canvas, prompt, now }, extra) => {
     const name = slugify(canvas);
     let reviewId: string | null = null;
     try {
       await app.ensureRunning();
+      if (now) {
+        // „Guck aufs Canvas“: wie „Fertig“, nur vom Agenten aus. Eine offene Besprechung endet damit auch in der App.
+        pending.delete(name);
+        const finished = await app.finishReview(name);
+        const state = await app.get(name);
+        log("review_now", { canvas: name, finished: finished.length, annotations: state.annotations.length });
+        return text(describeResult({ canvas: state.name, finishedAt: new Date().toISOString(), annotations: state.annotations, items: state.items, groups: state.groups }, undefined, { now: true }));
+      }
       const toolUseId = (extra._meta as Record<string, unknown> | undefined)?.["claudecode/toolUseId"];
       // Ein früherer Aufruf ohne Fortschrittsmeldungen hat die Besprechung offen gelassen: dort weitermachen.
       const resumed = pending.get(name) ?? null;
@@ -252,7 +265,7 @@ server.registerTool(
           const minutes = Math.round((Date.now() - started) / 60_000);
           await extra.sendNotification({
             method: "notifications/progress",
-            params: { progressToken: token, progress: round, message: `Canvas ${name} open for ${minutes} min` },
+            params: { progressToken: token, progress: round, message: `Waiting for "Done" in the canvas ${name} (${minutes} min)` },
           });
         }
       }

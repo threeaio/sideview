@@ -37,7 +37,7 @@ Then, in the canvas:
 | Frame a spot | Shift + drag, or drag with the Mark tool (M). Type a note, Enter saves |
 | Pin a point | click an image with the Mark tool |
 | Next / previous image | → / ←, or the arrows in the toolbar |
-| Send to the coding agent | **Done** at the top (or say "done") |
+| Send to the coding agent | **Done** at the top (or say "done"). Forgot it while the agent waits? Stop the wait (Esc in Claude Code) and tell it to look at the canvas |
 | Mark as done / reopen | select a note, **Done** / **Reopen**; the coding agent does this itself after fixing something |
 | Undo | ⌘Z, ⌘⇧Z |
 | Table of contents | click the canvas name or press I |

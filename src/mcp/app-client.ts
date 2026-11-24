@@ -79,6 +79,8 @@ export function createAppClient({ baseUrl = `http://127.0.0.1:${config.port}`, l
     waitReview: (reviewId: string, waitMs: number, signal?: AbortSignal) =>
       call<ReviewStatus>("GET", `/api/reviews/${enc(reviewId)}?wait=${waitMs}`, undefined, signal ?? AbortSignal.timeout(waitMs + 15_000)),
     cancelReview: (reviewId: string) => call<{ cancelled: boolean }>("DELETE", `/api/reviews/${enc(reviewId)}`),
+    /** Wie „Fertig“ im Canvas: beendet alle offenen Besprechungen dieses Canvas. */
+    finishReview: (name: string) => call<{ finished: string[] }>("POST", `/api/canvases/${enc(name)}/finish`).then((r) => r.finished),
   };
 }
 
