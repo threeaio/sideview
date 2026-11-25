@@ -187,7 +187,7 @@ try {
   // 7. status and uninstall.
   const status = spawnSync(process.execPath, [path.join(appDir, "bin/sideview.mjs"), "status"], { env, encoding: "utf8" });
   must(/registered as "sideview"/.test(status.stdout), `status: ${status.stdout}`);
-  must(/Missing: model/.test(status.stdout), `status should report the missing whisper model: ${status.stdout}`);
+  must(/Missing: [^\n]*\bmodel\b/.test(status.stdout), `status should report the missing whisper model: ${status.stdout}`);
   ok("status reports app, MCP and what voice needs");
   const un = spawnSync(process.execPath, [path.join(appDir, "bin/sideview.mjs"), "uninstall", "--yes"], { env, encoding: "utf8" });
   must(un.status === 0 && !fs.existsSync(appDir), `uninstall: ${un.stdout}${un.stderr}`);
