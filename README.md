@@ -57,7 +57,11 @@ When the coding agent replaces an image with a revised version, the old versions
 
 Hold **Option (⌥)** and speak: "overview", "next", "show me the header", "go down", "note three", dictate a note, "rename group", "done". In the comparison of versions: "version one", a section's name, "note two". German works as well as English (Settings → Language).
 
-Speech recognition runs locally with [whisper.cpp](https://github.com/ggml-org/whisper.cpp):
+Voice has two parts. Speech recognition is needed for voice at all; Jev is recommended on top.
+
+### 1. Speech recognition (needed for voice)
+
+It runs locally with [whisper.cpp](https://github.com/ggml-org/whisper.cpp):
 
 ```bash
 brew install whisper-cpp ffmpeg
@@ -66,9 +70,18 @@ curl -L -o ~/.cache/whisper-cpp/ggml-large-v3-turbo-q5_0.bin \
   https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin
 ```
 
-Restart the app. Without anything else, dictation and commands with their exact wording work.
+Restart the app. Now dictation works, and commands work when you say their exact wording ("overview", "note three").
 
-To understand free sentences ("go back to the one with the pricing table"), Sideview asks a small decision model: [Jev](https://docs.typesafe.ai) by TypeSafe. Put your API key in Settings (⌘,) → Understanding commands; it is stored in the macOS Keychain. Any service with the same API (`POST /v1/systemone`) works too – set its address and model in the same place, e.g. a local [Kev](https://github.com/jaredpalmer/kev) (its model cards list English only). Only the transcribed sentence and the names of the options on screen are sent; audio never leaves your Mac.
+### 2. Understanding commands with Jev (recommended)
+
+People rarely say the exact wording. "Go back to the one with the pricing table", a different word order, a word whisper heard slightly wrong: Sideview hands such sentences to [Jev](https://docs.typesafe.ai), a small, fast decision model by TypeSafe. Jev picks the matching command from what is on screen right now. Without Jev, Sideview only understands the exact wording and otherwise shows "No Jev key, fixed commands only".
+
+1. Create an account and an API key in the [TypeSafe console](https://console.typesafe.ai/keys).
+2. In Sideview, open Settings (⌘,) → Understanding commands and paste the key. It is stored in the macOS Keychain, not in a file. (Alternatively set `TYPESAFE_API_KEY` in the environment the app starts from.)
+
+Costs are small: only sentences that don't match exactly go to Jev, in daily use about 0.02 US cents each. Settings → Costs shows what it has cost you so far. Only the transcribed sentence and the names of the options on screen are sent; audio never leaves your Mac.
+
+Any service with the same API (`POST /v1/systemone`) works too: set its address and model in the same place, e.g. a local [Kev](https://github.com/jaredpalmer/kev) (its model cards list English only).
 
 The commands and their wording fit how I talk. Yours will differ – see [Make it yours](#make-it-yours).
 

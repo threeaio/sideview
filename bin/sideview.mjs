@@ -166,8 +166,9 @@ async function voiceReport(dir) {
     if (speech.missing.includes("whisper") || speech.missing.includes("ffmpeg")) out("      brew install whisper-cpp ffmpeg");
     if (speech.missing.includes("model"))
       out("      mkdir -p ~/.cache/whisper-cpp && curl -L -o ~/.cache/whisper-cpp/ggml-large-v3-turbo-q5_0.bin \\\n        https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin");
-    note("Then restart the app. Free-form commands also need a Jev key (Settings → Understanding commands).");
+    note("Then restart the app.");
   }
+  note("Recommended for voice: a Jev key (https://console.typesafe.ai/keys), pasted in Settings → Understanding commands. Without it, only commands with their exact wording work.");
 }
 
 async function health() {
