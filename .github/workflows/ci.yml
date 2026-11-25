@@ -1,0 +1,30 @@
+# Checks on every push to main and every pull request: types, unit tests, and the install path as a stranger gets it
+# (npx on a fresh home folder, with a stub for the `claude` CLI). The checks that drive the app's window stay local.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: node scripts/check-npx.mjs "$GITHUB_SHA"

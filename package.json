@@ -1,6 +1,6 @@
 {
   "name": "sideview",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "productName": "Sideview",
   "type": "module",
   "description": "A canvas next to your Claude Code thread: put screenshots on it, frame spots, speak or type notes, and send them back to Claude.",

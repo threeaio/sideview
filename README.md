@@ -6,7 +6,7 @@ It is a small macOS app with a local MCP server. Everything stays on your Mac.
 
 ![Three landing pages side by side; the coding agent waits while a frame with a note marks one header](docs/images/review.png)
 
-> Status: a personal tool, shared as is. It works well for me every day; it may not for you. Issues are welcome, support is not promised.
+> Status: alpha. A personal tool, used every day by one person; a test with other users is still missing. It may not work for you. Issues are welcome, support is not promised.
 
 ## Install
 
@@ -103,6 +103,8 @@ Voice is where this pays off most. Which commands you need, and which words you 
 - Every command's phrases are in `src/shared/i18n/en.ts` and `de.ts` (`cmd.<name>.phrases`). Add the words you say, remove the ones that misfire. An exact phrase wins over everything else, so a short phrase hidden inside a longer one ("back" in "further back") is the usual cause of a wrong action.
 - The routing core is `src/shared/voice.ts`. `src/shared/voice.test.ts` runs the real phrases, so a new collision shows up as a failing test.
 - Every spoken command is logged, with what was heard and what ran, in `~/Library/Application Support/Sideview/logs/commands.jsonl`. Hand that file to your coding agent and ask what to change.
+
+Adding a voice command takes four steps. A component registers its commands with `useVoiceCommands` (`src/renderer/features/voice/registry.ts`); look at `useCanvasVoice.ts` for many examples. Each command has an `id`, a `meaning` (one sentence the decision model reads when the words don't match exactly), its `phrases` from the language files, and `run`, the same handler the button uses. The button gets `data-option="<id>"`; a button without a voice command shows up as a warning in the console. Last, add the command to the routing test in `src/shared/voice.test.ts`, which checks that every phrase reaches its own command.
 
 The same goes for everything else: shortcuts, the toolbar, what a note looks like. Install your fork the same way: `npx github:<you>/sideview`.
 
