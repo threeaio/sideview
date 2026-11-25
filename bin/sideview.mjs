@@ -107,8 +107,20 @@ function copyApp() {
     fs.cpSync(path.join(SOURCE, entry), path.join(next, entry), { recursive: true, verbatimSymlinks: true });
   }
   if (!fs.existsSync(path.join(next, "dist/renderer/index.html"))) throw new Error("UI not built (dist/renderer missing) – did `npm run prepare` fail?");
-  // Development tools are not needed at runtime. Offline: prune only removes.
-  spawnSync("npm", ["prune", "--omit=dev", "--no-audit", "--no-fund", "--offline"], { cwd: next, stdio: "ignore" });
+  // npx puts the dependencies next to the package (…/_npx/<hash>/node_modules/*), not inside it. Copy them along: exactly
+  // the runtime dependencies, no network. Until 25.11. `npm prune --offline` was meant to rebuild them; with an empty
+  // npm cache (a new Mac, CI) it failed silently and Electron was missing.
+  const parent = path.dirname(path.resolve(SOURCE));
+  if (!fs.existsSync(path.join(SOURCE, "node_modules")) && path.basename(parent) === "node_modules") {
+    for (const entry of fs.readdirSync(parent)) {
+      if (path.join(parent, entry) === path.resolve(SOURCE)) continue;
+      fs.cpSync(path.join(parent, entry), path.join(next, "node_modules", entry), { recursive: true, verbatimSymlinks: true });
+    }
+  } else {
+    // A checkout with its own node_modules: development tools are not needed at runtime. Offline: prune only removes.
+    spawnSync("npm", ["prune", "--omit=dev", "--no-audit", "--no-fund", "--offline"], { cwd: next, stdio: "ignore" });
+  }
+  if (!fs.existsSync(path.join(next, "node_modules/electron/package.json"))) throw new Error("Dependencies missing in the app copy (node_modules/electron). Run init again; if it persists, please open an issue.");
   ensureElectron(next);
   fs.writeFileSync(path.join(next, MARKER), `${new Date().toISOString()}\n`);
   fs.rmSync(appDir, { recursive: true, force: true });
