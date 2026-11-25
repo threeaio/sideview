@@ -10,13 +10,17 @@ It is a small macOS app with a local MCP server. Everything stays on your Mac.
 
 ## Install
 
-You need macOS, [Node](https://nodejs.org) 24 or newer and [Claude Code](https://claude.com/claude-code).
+You need:
+
+- macOS and [Node](https://nodejs.org) 24 or newer
+- a coding agent that speaks MCP. With [Claude Code](https://claude.com/claude-code) the installer sets everything up; any other MCP client works too, see [Other MCP clients](#other-mcp-clients)
+- for voice (optional): whisper.cpp, and recommended on top a Jev key, see [Voice](#voice-optional)
 
 ```bash
 npx github:threeaio/sideview
 ```
 
-This copies the app to `~/Library/Application Support/Sideview/app`, registers the MCP server `sideview` with Claude Code for all your projects (it asks first), and starts the app. Start a new Claude Code session afterwards so it sees the new tools.
+This copies the app to `~/Library/Application Support/Sideview/app` and starts it. If Claude Code is installed, it also registers the MCP server `sideview` there for all your projects (it asks first); otherwise it prints the server entry to add to your agent. Start a new session of your agent afterwards so it sees the new tools.
 
 Later: `npx github:threeaio/sideview status`, `… start`, `… uninstall` (your canvases stay). Running the first command again updates the app.
 
